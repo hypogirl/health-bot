@@ -3,8 +3,15 @@ from discord.ext import commands
 import random
 import time
 import bottoken
+import mysql.connector
+import dbconnect
 
-#client = discord.Client()
+healthbot = mysql.connector.connect(
+  host=dbconnect.h,
+  user=dbconnect.u,
+  password=dbconnect.p,
+  database="healthbot"
+)
 
 intents = discord.Intents().all()
 bot = commands.Bot(command_prefix='caco', intents=intents)
@@ -31,9 +38,25 @@ async def help(ctx, *arg):
     if ctx.author.dm_channel != ctx.channel:
         await ctx.channel.send(ctx.author.mention + ", I've sent you a DM with the help menu.")
 
+
+def checkdb(t):
+    mycursor = mydb.cursor()
+    mycursor.execute("SELECT name FROM Trigger")
+    myresult = mycursor.fetchall()
+    for x in myresult:
+        if x == t:
+            return t
+    return False
+
 '''
 MOD COMMANDS
 '''
+
+def checkmod(ctx):
+    healthguild = bot.get_guild(688206199992483851)
+    mod = healthguild.get_role(689280713153183795)
+    return mod in ctx.author.roles
+
 def getvars(ctx,arg,healthguild): # gets the user,reason and member for the mod functions
     userID = ""
 
@@ -173,6 +196,26 @@ async def unmute(ctx, *, arg):
     else:
         await ctx.channel.send("You cannot unmute this user.")
 
+@bot.command()
+async def createtrigger(ctx, arg1, arg2):
+    if checkmod(ctx):
+        sql = "INSERT INTO Trigger (name, content) VALUES (%s, %s)"
+        val = (arg1, arg2)
+        mycursor.execute(sql, val)
+        mydb.commit()
+        await ctx.channel.send("Trigger created successfully.")
+
+
+'''
+temporary commands (prob)
+'''
+@bot.command()
+async def riff(ctx):
+    embed=discord.Embed(title=" ", description="https://open.spotify.com/playlist/4rjHTKoc6UW6vZ3OtsRskC?si=OusEsIvdQPaHLnY2ae1bjw \n\nhttps://music.apple.com/us/playlist/tricils-riff-of-the-week/pl.u-GgAxqabhZxeVBG", color=0xff0000)
+    embed.set_author(name="TRICIL'S RIFF OF THE WEEK PLAYLISTS! UPDATED EVERY WEDNESDAY!")
+    embed.set_thumbnail(url="https://cdn.discordapp.com/emojis/732593127352696942.png")
+    await ctx.channel.send(embed=embed)
+
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
@@ -182,6 +225,9 @@ async def on_message(message):
         message.content = "caco" + message.content[1:]
     
     if message.content.startswith("caco"): #recognising a command
+        trigger = checkdb(message[4:])
+        if trigger:
+            return trigger
         await bot.process_commands(message)
         return
 
