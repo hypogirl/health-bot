@@ -223,9 +223,9 @@ async def on_message(message):
         return
     
     if message.content.startswith("!"): #recognising a command
-        trigger = checkdb(message.content[4:])
-        if trigger:
-            return trigger
+        #trigger = checkdb(message.content[4:])
+        #if trigger:
+        #    return trigger
         await bot.process_commands(message)
         return
 
