@@ -34,7 +34,7 @@ async def help(ctx, *arg):
 '''
 MOD COMMANDS
 '''
-def getvars(ctx,arg,healthguild):
+def getvars(ctx,arg,healthguild): # gets the user,reason and member for the mod functions
     userID = ""
 
     for x in range(len(arg)):
@@ -50,7 +50,7 @@ def getvars(ctx,arg,healthguild):
     
     return user,reason,member
 
-def modactions(ctx,user,reason,member,healthguild,mod,action):
+def modactions(ctx,user,reason,member,healthguild,mod,action): # writes the embed and dm for the mod functions
     if mod in ctx.author.roles:
         if ctx.author.top_role > member.top_role:
             if user.avatar:
