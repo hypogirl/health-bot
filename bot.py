@@ -14,7 +14,7 @@ healthbot = mysql.connector.connect(
 )
 
 intents = discord.Intents().all()
-bot = commands.Bot(command_prefix='caco', intents=intents)
+bot = commands.Bot(command_prefix='!', intents=intents)
 bot.remove_command('help') #removing the default help command
 
 @bot.event
@@ -40,8 +40,8 @@ async def help(ctx, *arg):
 
 
 def checkdb(t):
-    mycursor = mydb.cursor()
-    mycursor.execute("SELECT name FROM Trigger")
+    mycursor = healthbot.cursor()
+    mycursor.execute("SELECT name FROM ``Trigger``")
     myresult = mycursor.fetchall()
     for x in myresult:
         if x == t:
@@ -201,8 +201,9 @@ async def createtrigger(ctx, arg1, arg2):
     if checkmod(ctx):
         sql = "INSERT INTO Trigger (name, content) VALUES (%s, %s)"
         val = (arg1, arg2)
+        mycursor = healthbot.cursor()
         mycursor.execute(sql, val)
-        mydb.commit()
+        healthbot.commit()
         await ctx.channel.send("Trigger created successfully.")
 
 
@@ -220,12 +221,9 @@ async def riff(ctx):
 async def on_message(message):
     if message.author == bot.user:
         return
-
-    if message.content.startswith("!"): #recognising a Ryan command
-        message.content = "caco" + message.content[1:]
     
-    if message.content.startswith("caco"): #recognising a command
-        trigger = checkdb(message[4:])
+    if message.content.startswith("!"): #recognising a command
+        trigger = checkdb(message.content[4:])
         if trigger:
             return trigger
         await bot.process_commands(message)
