@@ -41,7 +41,7 @@ async def help(ctx, *arg):
 
 def checkdb(t):
     mycursor = healthbot.cursor()
-    mycursor.execute("SELECT name FROM Trigger")
+    mycursor.execute("SELECT name FROM history")
     myresult = mycursor.fetchall()
     for x in myresult:
         if x == t:
