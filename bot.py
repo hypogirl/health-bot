@@ -23,7 +23,7 @@ async def ping(ctx):
 async def help(ctx, *arg):
     arg = ' '.join(arg)
     if arg == "help" or arg == "":
-        embed=discord.Embed(title="Help",description="Use ``cacohelp [command]`` for more info on a command.\n\n**__List of commands:__\ncacohelp** shows the list of commands and info about them.",color=0xff0000)
+        embed=discord.Embed(title="Help",description="Use ``cacohelp [command]`` for more info on a command.\n\n**__List of commands:__\ncacohelp** shows the list of commands and info about them.\n**cacoping** not sure what this does even.\n\n__Mod commands:__\n**cacokick** [mention user] [optional reason]\n**cacoban** [mention user] [optional reason]\n**cacowarn** [mention user] [optional reason]\n**cacomute** [mention user] [optional reason]\n**cacounmute** [mention user] [optional reason]\n",color=0xff0000)
     else:
         await ctx.author.send(arg + " is not a valid command.")
         return
