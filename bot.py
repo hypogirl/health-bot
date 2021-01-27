@@ -260,31 +260,21 @@ def album(m):
     albuml = []
     m = "".join(m.lower().split()) #remove spaces, all lowercase, makes it easier for search
 
-    health = ["girlattorney", "triceratops", "crimewave", "courtship", "zoothorns", "tabloidsores", "glitterpills", "perfectskin", "losttime"]
-    getcolor = ["getcolor", "inheat","dieslow","nicegirls","death+","beforetigers","severin","eatflesh","wearewater","inviolet"]
-    deathmagic = ["deathmagic","victim","stonefist","mentoday","fleshworld","courtshipii","darkenough","salvia","newcoke","lalooks","l.a.looks","hurtyourself","drugsexist"]
-    vol4 = ["vol4","psychonaut","feelnothing","godbotherer","blackstatic","lossdeluxe","nc-17","nc17","the message","ratwars","strangedays","wrongbag","slavesoffear","decimation"]
-    disco4 = ["disco4","cyberpunk2020","cyberpunk2.0.0.0","cyberpunk2.0.0.0.","body/prison","bodyprison","powerfantasy","judgmentnight","innocence","fullofhealth","colors","hateyou","dflooks","d.f.looks","massgrave","deliciousape","hardtobeagod"]
+    health = (["heaven", "girlattorney", "triceratops", "crimewave", "courtship", "zoothorns", "tabloidsores", "glitterpills", "perfectskin", "losttime"],755047461734580306)
+    getcolor = (["getcolor", "inheat","dieslow","nicegirls","death+","beforetigers","severin","eatflesh","wearewater","inviolet"],755047462640681030)
+    deathmagic = (["deathmagic","victim","stonefist","mentoday","fleshworld","courtshipii","darkenough","salvia","newcoke","lalooks","l.a.looks","hurtyourself","drugsexist"],755047460019372062)
+    vol4 = (["vol4","vol.4","psychonaut","feelnothing","godbotherer","blackstatic","lossdeluxe","nc-17","nc17","themessage","ratwars","strangedays","wrongbag","slavesoffear","decimation"],755047461944557618)
+    disco4 = (["disco4","cyberpunk2020","cyberpunk2.0.0.0","cyberpunk2.0.0.0.","body/prison","bodyprison","powerfantasy","judgmentnight","innocence","fullofhealth","colors","hateyou","dflooks","d.f.looks","massgrave","deliciousape","hardtobeagod"],755050227215630426)
+    disco3 = (["disco3","euphoria","slumlords","crusher"],755050414008696852)
+    disco2 = (["disco2","usaboys","u.s.a.boys"],755050225751556117)
+    
+    albums = [health,getcolor,deathmagic,vol4,disco2,disco3,disco4]
 
-    for x in health:
-        if x in m:
-            albuml.append(755047461734580306)
-            break
-    for x in getcolor:
-        if x in m:
-            albuml.append(755047462640681030)
-            break
-    for x in deathmagic:
-        if x in m:
-            albuml.append(755047460019372062)
-            break
-    for x in vol4:
-        if x in m:
-            albuml.append(755047461944557618)
-            break
-    for x in disco4:
-        if x in m:
-            albuml.append(755050227215630426)
+    for x in albums:
+        for y in x[0]:
+            if y in m:
+                albuml.append(x[1])
+                break
 
     return albuml    
 
@@ -324,6 +314,9 @@ async def on_message(message):
             for x in emojialbum:
                 emoji = bot.get_emoji(x)
                 await message.add_reaction(emoji)
+
+    
+    if "health bot" in message.content and "good" 
 
     
     
