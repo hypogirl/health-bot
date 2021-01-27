@@ -41,12 +41,25 @@ async def help(ctx, *arg):
 
 def checkdb(t):
     mycursor = healthbot.cursor()
-    mycursor.execute("SELECT name FROM ``Trigger`")
+    mycursor.execute("SELECT name,content,embed FROM `Trigger`")
     myresult = mycursor.fetchall()
-    for x in myresult:
+    possible = []
+    trigger = False
+    flag = False
+    for x,y,z in myresult:
+        print(x + " " + t)
         if x == t:
-            return t
-    return False
+            if z == 0:
+                possible.append(y)
+            else:
+                possible.append(y)
+                flag = True
+    if possible:
+        trigger = random.choice(possible)
+    return trigger,flag
+
+def convertembed(t):
+    return
 
 '''
 MOD COMMANDS
@@ -71,7 +84,7 @@ def getvars(ctx,arg,healthguild): # gets the user,reason and member for the mod 
     user = bot.get_user(userID)
     member = healthguild.get_member(userID)
     
-    return user,reason,member
+    return user,reason,member,userID
 
 def modactions(ctx,user,reason,member,healthguild,mod,action): # writes the embed and dm for the mod functions
     if mod in ctx.author.roles:
@@ -100,7 +113,10 @@ def modactions(ctx,user,reason,member,healthguild,mod,action): # writes the embe
 async def warn(ctx, *, arg):
     healthguild = bot.get_guild(688206199992483851)
     mod = healthguild.get_role(689280713153183795)
-    user,reason,member = getvars(ctx,arg,healthguild)
+    user,reason,member,memberID = getvars(ctx,arg,healthguild)
+    if not(member):
+        await ctx.channel.send("<@!" + str(memberID) + "> is not a member of HEALTHcord.")
+        return
     embed,message = modactions(ctx,user,reason,member,healthguild,mod,"warned")
     if embed == "notmod":
         return
@@ -114,7 +130,10 @@ async def warn(ctx, *, arg):
 async def ban(ctx, *, arg):
     healthguild = bot.get_guild(688206199992483851)
     mod = healthguild.get_role(689280713153183795)
-    user,reason,member = getvars(ctx,arg,healthguild)
+    user,reason,member,memberID = getvars(ctx,arg,healthguild)
+    if not(member):
+        await ctx.channel.send("<@!" + str(memberID) + "> is not a member of HEALTHcord.")
+        return
     embed,message = modactions(ctx,user,reason,member,healthguild,mod,"banned")
     if embed == "notmod":
         return
@@ -132,7 +151,10 @@ async def ban(ctx, *, arg):
 async def kick(ctx, *, arg):
     healthguild = bot.get_guild(688206199992483851)
     mod = healthguild.get_role(689280713153183795)
-    user,reason,member = getvars(ctx,arg,healthguild)
+    user,reason,member,memberID = getvars(ctx,arg,healthguild)
+    if not(member):
+        await ctx.channel.send("<@!" + str(memberID) + "> is not a member of HEALTHcord.")
+        return
     embed,message = modactions(ctx,user,reason,member,healthguild,mod,"kicked")
     if embed == "notmod":
         return
@@ -147,7 +169,10 @@ async def kick(ctx, *, arg):
 async def mute(ctx, *, arg):
     healthguild = bot.get_guild(688206199992483851)
     mod = healthguild.get_role(689280713153183795)
-    user,reason,member = getvars(ctx,arg,healthguild)
+    user,reason,member,memberID = getvars(ctx,arg,healthguild)
+    if not(member):
+        await ctx.channel.send("<@!" + str(memberID) + "> is not a member of HEALTHcord.")
+        return
 
     '''seconds = ""
     for x in range(len(reason)):
@@ -184,7 +209,10 @@ async def mute(ctx, *, arg):
 async def unmute(ctx, *, arg):
     healthguild = bot.get_guild(688206199992483851)
     mod = healthguild.get_role(689280713153183795)
-    user,reason,member = getvars(ctx,arg,healthguild)
+    user,reason,member,memberID = getvars(ctx,arg,healthguild)
+    if not(member):
+        await ctx.channel.send("<@!" + str(memberID) + "> is not a member of HEALTHcord.")
+        return
     embed,message = modactions(ctx,user,reason,member,healthguild,mod,"unmuted")
     muted = healthguild.get_role(716467961631866922)
     if embed == "notmod":
@@ -199,12 +227,21 @@ async def unmute(ctx, *, arg):
 @bot.command()
 async def createtrigger(ctx, arg1, arg2):
     if checkmod(ctx):
-        sql = "INSERT INTO Trigger (name, content) VALUES (%s, %s)"
+        sql = "INSERT INTO `Trigger` (name, content,embed) VALUES (%s, %s, 0)"
         val = (arg1, arg2)
         mycursor = healthbot.cursor()
         mycursor.execute(sql, val)
         healthbot.commit()
         await ctx.channel.send("Trigger created successfully.")
+
+@bot.command()
+async def deletetrigger(ctx, arg):
+    if checkmod(ctx):
+        mycursor = healthbot.cursor()
+        sql = "DELETE FROM `Trigger` WHERE name = '" + arg + "'"
+        mycursor.execute(sql)
+        healthbot.commit()
+        await ctx.channel.send("Trigger deleted successfully.")
 
 
 '''
@@ -217,22 +254,78 @@ async def riff(ctx):
     embed.set_thumbnail(url="https://cdn.discordapp.com/emojis/732593127352696942.png")
     await ctx.channel.send(embed=embed)
 
+
+
+def album(m):
+    albuml = []
+    m = "".join(m.lower().split()) #remove spaces, all lowercase, makes it easier for search
+
+    health = ["girlattorney", "triceratops", "crimewave", "courtship", "zoothorns", "tabloidsores", "glitterpills", "perfectskin", "losttime"]
+    getcolor = ["getcolor", "inheat","dieslow","nicegirls","death+","beforetigers","severin","eatflesh","wearewater","inviolet"]
+    deathmagic = ["deathmagic","victim","stonefist","mentoday","fleshworld","courtshipii","darkenough","salvia","newcoke","lalooks","l.a.looks","hurtyourself","drugsexist"]
+    vol4 = ["vol4","psychonaut","feelnothing","godbotherer","blackstatic","lossdeluxe","nc-17","nc17","the message","ratwars","strangedays","wrongbag","slavesoffear","decimation"]
+    disco4 = ["disco4","cyberpunk2020","cyberpunk2.0.0.0","cyberpunk2.0.0.0.","body/prison","bodyprison","powerfantasy","judgmentnight","innocence","fullofhealth","colors","hateyou","dflooks","d.f.looks","massgrave","deliciousape","hardtobeagod"]
+
+    for x in health:
+        if x in m:
+            albuml.append(755047461734580306)
+            break
+    for x in getcolor:
+        if x in m:
+            albuml.append(755047462640681030)
+            break
+    for x in deathmagic:
+        if x in m:
+            albuml.append(755047460019372062)
+            break
+    for x in vol4:
+        if x in m:
+            albuml.append(755047461944557618)
+            break
+    for x in disco4:
+        if x in m:
+            albuml.append(755050227215630426)
+
+    return albuml    
+
+
+
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
         return
-    
+  
     if message.content.startswith("!"): #recognising a command
-        #trigger = checkdb(message.content[4:])
+        #trigger,e = checkdb(message.content[1:])
         #if trigger:
-        #    return trigger
+        #    if e:
+        #        embed = convertembed(trigger)
+        #        await message.channel.send(embed=embed)
+        #    else:
+        #        await message.channel.send(trigger)
+        #    return
         await bot.process_commands(message)
         return
+
+    if message.author.id == 225522547154747392: #replacing the stock bot messages with HEALTH BOT messages
+        embedc=discord.Embed(title= "STOCKS", description= message.embeds[0].description, color=0xff0000)
+        embedc.set_footer(text= message.embeds[0].footer.text)
+        await message.channel.send(embed= embedc)
+        await message.delete()
 
     if message.content.lower() in ["musik make love to <@774402228084670515>","musik make love to health bot","musik make love to health :: bot"]:
         time.sleep(1)
         o = ["Oh no... not me.","Why would anyone want this","What is wrong with you?","No no no no no no"]
         await message.channel.send(random.choice(o))
+    
+    if message.channel.id != 707011962898481254: #we dont want this on #on-the-real certainly
+        emojialbum = album(message.content) #finding if there is a mention to a HEALTH album in a message and reacting with the album cover
+        if emojialbum:
+            for x in emojialbum:
+                emoji = bot.get_emoji(x)
+                await message.add_reaction(emoji)
+
+    
     
 
 
