@@ -260,13 +260,14 @@ def album(m):
     albuml = []
     m = "".join(m.lower().split()) #remove spaces, all lowercase, makes it easier for search
 
-    health = (["heaven", "girlattorney", "triceratops", "crimewave", "courtship", "zoothorns", "tabloidsores", "glitterpills", "perfectskin", "losttime"],755047461734580306)
+    health = (["heaven", "girlattorney", "triceratops", "crimewave", "courtship", "zoothorns", "tabloidsores", "glitterpills", "perfectskin", "losttime","//m\\\\"],755047461734580306)
     getcolor = (["getcolor", "inheat","dieslow","nicegirls","death+","beforetigers","severin","eatflesh","wearewater","inviolet"],755047462640681030)
     deathmagic = (["deathmagic","victim","stonefist","mentoday","fleshworld","courtshipii","darkenough","salvia","newcoke","lalooks","l.a.looks","hurtyourself","drugsexist"],755047460019372062)
     vol4 = (["vol4","vol.4","psychonaut","feelnothing","godbotherer","blackstatic","lossdeluxe","nc-17","nc17","themessage","ratwars","strangedays","wrongbag","slavesoffear","decimation"],755047461944557618)
     disco4 = (["disco4","cyberpunk2020","cyberpunk2.0.0.0","cyberpunk2.0.0.0.","body/prison","bodyprison","powerfantasy","judgmentnight","innocence","fullofhealth","colors","hateyou","dflooks","d.f.looks","massgrave","deliciousape","hardtobeagod"],755050227215630426)
     disco3 = (["disco3","euphoria","slumlords","crusher"],755050414008696852)
     disco2 = (["disco2","usaboys","u.s.a.boys"],755050225751556117)
+    mp3 = (["tears"],755047462896533605)
     
     albums = [health,getcolor,deathmagic,vol4,disco2,disco3,disco4]
 
@@ -315,8 +316,33 @@ async def on_message(message):
                 emoji = bot.get_emoji(x)
                 await message.add_reaction(emoji)
 
+    if "pain" in "".join(message.content.lower().split()):
+        max = bot.get_emoji(697638034937479239)
+        await message.add_reaction(max)
+
+    if message.content == "health joao qwerty":
+        await message.reply("test")
     
-    if "health bot" in message.content and "good" 
+
+
+@bot.event
+async def on_message_edit(before,after):
+    if before.content != after.content:
+        userstr = before.author.name + "#" + before.author.discriminator
+        avatarurl = "https://cdn.discordapp.com/avatars/" + str(before.author.id) + "/" + before.author.avatar + ".webp"
+        embed=discord.Embed(title="Message edited in #" + before.channel.name, description= "**Before:** " + before.content + "\n**After:** " + after.content,color=0x45b6fe)
+        embed.set_author(name=userstr, icon_url=avatarurl)
+        await bot.get_channel(735169441729478717).send(embed= embed)
+
+@bot.event
+async def on_message_delete(message):
+    if message.author.id == 372175794895585280: #its the haikubot ID, its kinda useless showing when these are deleted
+        return
+    userstr = message.author.name + "#" + message.author.discriminator
+    avatarurl = "https://cdn.discordapp.com/avatars/" + str(message.author.id) + "/" + message.author.avatar + ".webp"
+    embed=discord.Embed(title="Message deleted in #" + message.channel.name, description= message.content,color=0xff0000)
+    embed.set_author(name=userstr, icon_url=avatarurl)
+    await bot.get_channel(735169441729478717).send(embed= embed)
 
     
     
