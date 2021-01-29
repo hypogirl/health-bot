@@ -2,6 +2,8 @@ import discord
 from discord.ext import commands
 import random
 import time
+import math
+from datetime import datetime
 import bottoken
 import mysql.connector
 import dbconnect
@@ -109,6 +111,20 @@ def modactions(ctx,user,reason,member,healthguild,mod,action): # writes the embe
     else:
         return "notmod",False
 
+def modlogembed(action, reason, message, colour, user): # building the embed for the mod log channel
+    modlog = bot.get_channel(733746271684263936)
+    userstr = user.name + "#" + user.discriminator
+    modstr = message.author.name + "#" + message.author.discriminator
+    serverid = str(message.guild.id)
+    channelid = str(message.channel.id)
+    messageid = str(message.message.id)
+    messageurl = "https://discord.com/channels/" + serverid + "/" + channelid + "/" + messageid
+    if not(reason):
+        reason = "No reason given by the moderator."
+    embed=discord.Embed(title= action + " | #" + message.channel.name, description= "**Offender:** " + userstr + " / " + user.mention + "\n**Reason:** " + reason + "\n**Responsible moderator: **" + modstr,color=colour)
+    embed.add_field(name="-----", value="[Jump to incident](" + messageurl + ")", inline=False)
+    return embed, modlog
+
 @bot.command()
 async def warn(ctx, *, arg):
     healthguild = bot.get_guild(688206199992483851)
@@ -122,6 +138,8 @@ async def warn(ctx, *, arg):
         return
     elif embed:
         await ctx.channel.send(embed=embed)
+        embed2,modlog = modlogembed("warn", reason, ctx, 0xfffcbb, user)
+        await modlog.send(embed= embed2)
         await user.send(message)
     else:
         await ctx.channel.send("You cannot warn this user.")
@@ -139,10 +157,35 @@ async def ban(ctx, *, arg):
         return
     elif embed:
         if reason =="":
-            await healthguild.ban(user,reason=None, delete_message_days=0)
+            await healthguild.ban(user,reason="​​​", delete_message_days=0)
         else:
-            await healthguild.ban(user,reason=reason, delete_message_days=0)
+            await healthguild.ban(user,reason=reason + "​​​", delete_message_days=0)
         await ctx.channel.send(embed=embed)
+        embed2,modlog = modlogembed("ban", reason, ctx, 0xff0000, user)
+        await modlog.send(embed = embed2)
+        await user.send(message)
+    else:
+        await ctx.channel.send("You cannot ban this user.")
+
+@bot.command()
+async def unban(ctx, *, arg):
+    healthguild = bot.get_guild(688206199992483851)
+    mod = healthguild.get_role(689280713153183795)
+    user,reason,member,memberID = getvars(ctx,arg,healthguild)
+    if not(member):
+        await ctx.channel.send("I cannot find this user. Please unban <@!" + str(memberID) + "> manually.")
+        return
+    embed,message = modactions(ctx,user,reason,member,healthguild,mod,"unbanned")
+    if embed == "notmod":
+        return
+    elif embed:
+        if reason == "":
+            await healthguild.unban(user,reason="​​​")
+        else:
+            await healthguild.unban(user,reason=reason + "​​​")
+        await ctx.channel.send(embed=embed)
+        embed2,modlog = modlogembed("unban", reason, ctx, 0x149414, user)
+        await modlog.send(embed = embed2)
         await user.send(message)
     else:
         await ctx.channel.send("You cannot ban this user.")
@@ -161,6 +204,8 @@ async def kick(ctx, *, arg):
     elif embed:
         await member.kick()
         await ctx.channel.send(embed=embed)
+        embed2,modlog = modlogembed("kick", reason, ctx, 0xffa500, user)
+        await modlog.send(embed = embed2)
         await user.send(message)
     else:
         await ctx.channel.send("You cannot kick this user.")
@@ -199,6 +244,8 @@ async def mute(ctx, *, arg):
     elif embed:
         await member.add_roles(muted,reason="Muted", atomic=True)
         await ctx.channel.send(embed=embed)
+        embed2,modlog = modlogembed("mute", reason, ctx, 0xfffcbb, user)
+        await modlog.send(embed = embed2)
         await user.send(message)
         #time.sleep(seconds)
         #await member.remove_roles(muted, reason="Unmuted", atomic=True)
@@ -220,6 +267,8 @@ async def unmute(ctx, *, arg):
     elif embed:
         await member.remove_roles(muted, reason="Unmuted", atomic=True)
         await ctx.channel.send(embed=embed)
+        embed2,modlog = modlogembed("unmute", reason, ctx, 0x149414, user)
+        await modlog.send(embed = embed2)
         await user.send(message)
     else:
         await ctx.channel.send("You cannot unmute this user.")
@@ -244,9 +293,8 @@ async def deletetrigger(ctx, arg):
         await ctx.channel.send("Trigger deleted successfully.")
 
 
-'''
-temporary commands (prob)
-'''
+
+## temporary commands (prob) ##
 @bot.command()
 async def riff(ctx):
     embed=discord.Embed(title=" ", description="https://open.spotify.com/playlist/4rjHTKoc6UW6vZ3OtsRskC?si=OusEsIvdQPaHLnY2ae1bjw \n\nhttps://music.apple.com/us/playlist/tricils-riff-of-the-week/pl.u-GgAxqabhZxeVBG", color=0xff0000)
@@ -324,9 +372,12 @@ async def on_message(message):
         await message.reply("test")
     
 
+## MISC EVENTS ##
 
 @bot.event
 async def on_message_edit(before,after):
+    if before.channel.id == 733412404351991846: # curated channel, it prevents the channel to be spammed with cacostar counter updates
+        return
     if before.content != after.content:
         userstr = before.author.name + "#" + before.author.discriminator
         avatarurl = "https://cdn.discordapp.com/avatars/" + str(before.author.id) + "/" + before.author.avatar + ".webp"
@@ -344,9 +395,127 @@ async def on_message_delete(message):
     embed.set_author(name=userstr, icon_url=avatarurl)
     await bot.get_channel(735169441729478717).send(embed= embed)
 
-    
-    
+@bot.event
+async def on_member_ban(healthcord,user):
+    logs = await healthcord.audit_logs(limit=1, action=discord.AuditLogAction.ban).flatten()
+    logs = logs[0]
+    if "​​​" in logs.reason:
+        return
+    modlog = bot.get_channel(733746271684263936)
+    userstr = user.name + "#" + user.discriminator
+    modstr = logs.user.name + "#" + logs.user.discriminator
+    embed=discord.Embed(title= "manual ban", description= "**Offender:** " + userstr + " / " + user.mention + "\n**Reason:** " + logs.reason + "\n**Responsible moderator: **" + modstr,color= 0xff0000)
+    await modlog.send(embed= embed)
 
+@bot.event
+async def on_member_unban(healthcord,user):
+    logs = await healthcord.audit_logs(limit=1, action=discord.AuditLogAction.unban).flatten()
+    logs = logs[0]
+    if "​​​" in logs.reason:
+        return
+    modlog = bot.get_channel(733746271684263936)
+    userstr = user.name + "#" + user.discriminator
+    modstr = logs.user.name + "#" + logs.user.discriminator
+    embed = discord.Embed(title= "manual unban", description= "**Offender:** " + userstr + " / " + user.mention + "\n**Responsible moderator: **" + modstr,color= 0xff0000)
+    await modlog.send(embed= embed)
+
+@bot.event
+async def on_member_remove(member):
+    modlog = bot.get_channel(733746271684263936)
+    memberstr = member.name + "#" + member.discriminator
+    timeonserver = datetime.now() - member.joined_at
+    timestr = " joined "
+    if timeonserver.days:
+        if timeonserver.days >= 365:
+            if timeonserver.days / 365 < 2:
+                timestrAux = "1 year, " + str(timeonserver.days % 365) + " days, "
+                timestr += timestrAux
+            else:
+                timestrAux = str(math.floor(timeonserver.days/365)) + " years, " + str(timeonserver.days % 365) + " days, "
+                timestr += timestrAux
+        else:
+            if timeonserver.days == 1:
+                timestr += "1 day, "
+            else:
+                timestrAux = str(timeonserver.days) + " days, "
+                timestr += timestrAux
+    if timeonserver.seconds:
+        if timeonserver.seconds / 60 >= 60:
+            if timeonserver.seconds / 3600 < 2:
+                rest = timeonserver.seconds % 3600
+                minutes = math.floor(rest / 60)
+                seconds = rest % 60
+                timestrAux = "1 hour, "
+                if minutes:
+                    if minutes == 1:
+                        timestrAux += "1 minute, "
+                    else:
+                        timestrAuxAux = str(minutes) + " minutes, "
+                        timestrAux += timestrAuxAux
+                if seconds:
+                    if seconds == 1:
+                        timestrAux += "1 second, "
+                    else:
+                        timestrAuxAux = str(seconds) + " seconds"
+                        timestrAux += timestrAuxAux
+                timestr += timestrAux
+            else:
+                rest = timeonserver.seconds % 3600
+                minutes = math.floor(rest / 60)
+                seconds = rest % 60
+                timestrAux = str(math.floor(timeonserver.seconds / 3600)) + " hours, "
+                if minutes:
+                    if minutes == 1:
+                        timestrAux += "1 minute, "
+                    else:
+                        timestrAuxAux = str(minutes) + " minutes, "
+                        timestrAux += timestrAuxAux
+                if seconds:
+                    if seconds == 1:
+                        timestrAux += "1 second, "
+                    else:
+                        timestrAuxAux = str(seconds) + " seconds"
+                        timestrAux += timestrAuxAux
+                timestr += timestrAux
+        else:
+            minutes = math.floor(timeonserver.seconds / 60)
+            seconds = rest % 60
+            timestrAux = "1 hour, "
+            if minutes:
+                if minutes == 1:
+                    timestrAux += "1 minute, "
+                else:
+                    timestrAuxAux = str(minutes) + " minutes, "
+                    timestrAux += timestrAuxAux
+            if seconds:
+                if seconds == 1:
+                    timestrAux += "1 second, "
+                else:
+                    timestrAuxAux = str(seconds) + " seconds"
+                    timestrAux += timestrAuxAux
+            timestr += timestrAux
+
+    if timestr[-2:] == ", ":
+        timestr = timestr[:-2] + " ago."
+    else:
+        timestr += " ago."
+                
+    rolestr = ""
+    for role in member.roles[1:]:
+        rolestr += role.mention + ", "
+
+    if rolestr[-2:] == ", ":
+        rolestr = rolestr[:-2]
+
+    if member.avatar:
+        avatarurl = "https://cdn.discordapp.com/avatars/" + str(member.id) + "/" + member.avatar + ".webp"
+    else:
+        avatarurl = "https://cdn.discordapp.com/avatars/774402228084670515/5ef539d5f3e8d576c4854768727bc75a.png"
+    
+    embed = discord.Embed(title = "Member left", description = member.mention + timestr + "\n**Roles:** " + rolestr, color=0xff0000)
+    embed.set_author(name=memberstr, icon_url=avatarurl)
+    await modlog.send(embed= embed)
+    
 
 
 bot.run(bottoken.token)
