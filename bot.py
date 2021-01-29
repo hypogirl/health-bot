@@ -479,7 +479,7 @@ async def on_member_remove(member):
                 timestr += timestrAux
         else:
             minutes = math.floor(timeonserver.seconds / 60)
-            seconds = rest % 60
+            seconds = timeonserver.seconds % 60
             timestrAux = "1 hour, "
             if minutes:
                 if minutes == 1:
