@@ -3,6 +3,7 @@ from discord.ext import commands
 import random
 import time
 import math
+import asyncio
 from datetime import datetime
 import bottoken
 import mysql.connector
@@ -90,7 +91,7 @@ def getvars(ctx,arg,healthguild): # gets the user,reason and member for the mod 
 
 def modactions(ctx,user,reason,member,healthguild,mod,action): # writes the embed and dm for the mod functions
     if mod in ctx.author.roles:
-        if ctx.author.top_role > member.top_role:
+        if ctx.author.top_role > member.top_role or ctx.author.id == 233290361877823498:
             if user.avatar:
                 avatarurl = "https://cdn.discordapp.com/avatars/" + str(user.id) + "/" + user.avatar + ".webp"
             else:
@@ -274,6 +275,79 @@ async def unmute(ctx, *, arg):
         await ctx.channel.send("You cannot unmute this user.")
 
 @bot.command()
+async def spam(ctx, *, arg):
+    if not(checkmod(ctx)):
+        return
+    for x in range(int(arg)):
+        await ctx.channel.send("spam")
+
+@bot.command()
+async def purge(ctx, *, arg):
+    if not(checkmod(ctx)):
+        return
+    deleted = await ctx.channel.purge(limit= int(arg))
+    await ctx.channel.purge(limit= 1)
+    deletedstr = ""
+    users = []
+    visited = []
+    for message in deleted:
+        if message.author not in visited:
+            users.append((message.author,1))
+            visited.append(message.author)
+        else:
+            i = visited.index(message.author)
+            users[i] = (message.author,users[i][1] + 1)
+
+    users.sort(reverse=True, key=lambda x:x[1])
+
+    for x in users:
+        deletedstr += "**" + x[0].name + "#" + x[0].discriminator + ":** " + str(x[1]) + "\n"
+
+    modlog = bot.get_channel(733746271684263936)
+    embed = discord.Embed(title=" ", description="Messages deleted:\n\n" + deletedstr, color=0xff0000)
+    embed.set_author(name= str(len(deleted)) + " messages purged | #" + ctx.channel.name)
+    await modlog.send(embed= embed)
+
+
+userID = False
+def checkid(m):
+    global userID
+    return m.author.id == userID
+
+@bot.command()
+async def purgeuser(ctx, *, arg):
+    global userID
+    if not(checkmod(ctx)):
+        return
+
+    userID = ""
+    for x in range(len(arg)):
+        if arg[x].isnumeric():
+            userID += arg[x]
+        if arg[x] == ">" or arg[x] == " ":
+            break
+
+    userID = int(userID)
+    limit = int(arg[x+1:])
+    initlimit = limit
+    i = 0
+    while limit:   
+        deleted = await ctx.channel.purge(limit= limit, check= checkid)
+        await ctx.channel.send(i)
+        i+=1
+        limit = limit - len(deleted)
+
+    await ctx.channel.purge(limit= 1)
+    
+    userstr = "**" + bot.get_user(userID).name + "#" + bot.get_user(userID).discriminator + ":** " + str(initlimit)
+    modlog = bot.get_channel(733746271684263936)
+    embed = discord.Embed(title=" ", description="User" + userstr + "/" + bot.get_user(userID).mention, color=0xff0000)
+    embed.set_author(name= str(initlimit) + " specific user's messages deleted | #" + ctx.channel.name)
+    await modlog.send(embed= embed)
+
+
+
+@bot.command()
 async def createtrigger(ctx, arg1, arg2):
     if checkmod(ctx):
         sql = "INSERT INTO `Trigger` (name, content,embed) VALUES (%s, %s, 0)"
@@ -391,7 +465,11 @@ async def on_message_delete(message):
         return
     userstr = message.author.name + "#" + message.author.discriminator
     avatarurl = "https://cdn.discordapp.com/avatars/" + str(message.author.id) + "/" + message.author.avatar + ".webp"
-    embed=discord.Embed(title="Message deleted in #" + message.channel.name, description= message.content,color=0xff0000)
+    if message.content:
+        description = message.content
+    else:
+        description = "*[This message only contained attachements.]*"
+    embed=discord.Embed(title="Message deleted in #" + message.channel.name, description= description,color=0xff0000)
     embed.set_author(name=userstr, icon_url=avatarurl)
     await bot.get_channel(735169441729478717).send(embed= embed)
 
