@@ -33,7 +33,11 @@ async def ping(ctx):
 async def help(ctx, *arg):
     arg = ' '.join(arg)
     if arg == "help" or arg == "":
-        embed=discord.Embed(title="Help",description="Use ``cacohelp [command]`` for more info on a command.\n\n**__List of commands:__\ncacohelp** shows the list of commands and info about them.\n**cacoping** not sure what this does even.\n\n__Mod commands:__\n**cacokick** [mention user] [optional reason]\n**cacoban** [mention user] [optional reason]\n**cacowarn** [mention user] [optional reason]\n**cacomute** [mention user] [optional reason]\n**cacounmute** [mention user] [optional reason]\n",color=0xff0000)
+        embed=discord.Embed(title="Help",description="Use ``!help [command]`` for more info on a command.\n\n**__List of commands:__\n!help** shows the list of commands and info about them.\n**!ping** not sure what this does even.\n\n__Mod commands:__\n**!kick** [mention user] [optional reason]\n**!ban** [mention user] [optional reason]\n**!warn** [mention user] [optional reason]\n**!mute** [mention user] [optional reason]\n**!unmute** [mention user] [optional reason]\n**!unban (not recommended)** [mention user] [optional reason]\n**!purge** [no. of messages]\n**!purgeuser (unstable for now)** [mention user] [no. of messages]\n**!spam** [no. of messages]",color=0xff0000)
+    elif arg == "kick":
+        embed=discord.Embed(title="!kick",description= "kicks member from HEALTHcord and stores information - including the reason for the kick - in the <#733746271684263936>. They might rejoin the server whenever they want.")
+    elif arg == "ban":
+        embed=discord.Embed(title="!ban",description= "bans member from HEALTHcord and stores information - including the reason for the ban - in the <#733746271684263936>.")
     else:
         await ctx.author.send(arg + " is not a valid command.")
         return
@@ -90,7 +94,7 @@ def getvars(ctx,arg,healthguild): # gets the user,reason and member for the mod 
     return user,reason,member,userID
 
 def modactions(ctx,user,reason,member,healthguild,mod,action): # writes the embed and dm for the mod functions
-    if mod in ctx.author.roles:
+    if mod in ctx.author.roles and member.id != 774402228084670515:
         if ctx.author.top_role > member.top_role or ctx.author.id == 233290361877823498:
             if user.avatar:
                 avatarurl = "https://cdn.discordapp.com/avatars/" + str(user.id) + "/" + user.avatar + ".webp"
@@ -114,15 +118,13 @@ def modactions(ctx,user,reason,member,healthguild,mod,action): # writes the embe
 
 def modlogembed(action, reason, message, colour, user): # building the embed for the mod log channel
     modlog = bot.get_channel(733746271684263936)
-    userstr = user.name + "#" + user.discriminator
-    modstr = message.author.name + "#" + message.author.discriminator
     serverid = str(message.guild.id)
     channelid = str(message.channel.id)
     messageid = str(message.message.id)
     messageurl = "https://discord.com/channels/" + serverid + "/" + channelid + "/" + messageid
     if not(reason):
         reason = "No reason given by the moderator."
-    embed=discord.Embed(title= action + " | #" + message.channel.name, description= "**Offender:** " + userstr + " / " + user.mention + "\n**Reason:** " + reason + "\n**Responsible moderator: **" + modstr,color=colour)
+    embed=discord.Embed(title= action + " | #" + message.channel.name, description= "**Offender:** " + user.mention + "\n**Reason:** " + reason + "\n**Responsible moderator: **" + message.author.mention,color=colour)
     embed.add_field(name="-----", value="[Jump to incident](" + messageurl + ")", inline=False)
     return embed, modlog
 
@@ -141,7 +143,10 @@ async def warn(ctx, *, arg):
         await ctx.channel.send(embed=embed)
         embed2,modlog = modlogembed("warn", reason, ctx, 0xfffcbb, user)
         await modlog.send(embed= embed2)
-        await user.send(message)
+        try:
+            await user.send(message)
+        except:
+            print(user.mention + " doesn't allow DMs. It's likely a bot.")
     else:
         await ctx.channel.send("You cannot warn this user.")
 
@@ -164,7 +169,10 @@ async def ban(ctx, *, arg):
         await ctx.channel.send(embed=embed)
         embed2,modlog = modlogembed("ban", reason, ctx, 0xff0000, user)
         await modlog.send(embed = embed2)
-        await user.send(message)
+        try:
+            await user.send(message)
+        except:
+            print(user.mention + " doesn't allow DMs. It's likely a bot.")
     else:
         await ctx.channel.send("You cannot ban this user.")
 
@@ -187,7 +195,10 @@ async def unban(ctx, *, arg):
         await ctx.channel.send(embed=embed)
         embed2,modlog = modlogembed("unban", reason, ctx, 0x149414, user)
         await modlog.send(embed = embed2)
-        await user.send(message)
+        try:
+            await user.send(message)
+        except:
+            print(user.mention + " doesn't allow DMs. It's likely a bot.")
     else:
         await ctx.channel.send("You cannot ban this user.")
 
@@ -207,7 +218,10 @@ async def kick(ctx, *, arg):
         await ctx.channel.send(embed=embed)
         embed2,modlog = modlogembed("kick", reason, ctx, 0xffa500, user)
         await modlog.send(embed = embed2)
-        await user.send(message)
+        try:
+            await user.send(message)
+        except:
+            print(user.mention + " doesn't allow DMs. It's likely a bot.")
     else:
         await ctx.channel.send("You cannot kick this user.")
 
@@ -216,29 +230,52 @@ async def mute(ctx, *, arg):
     healthguild = bot.get_guild(688206199992483851)
     mod = healthguild.get_role(689280713153183795)
     user,reason,member,memberID = getvars(ctx,arg,healthguild)
+
     if not(member):
         await ctx.channel.send("<@!" + str(memberID) + "> is not a member of HEALTHcord.")
         return
 
-    '''seconds = ""
+    seconds = ""
     for x in range(len(reason)):
         seconds += reason[x]
         if not(reason[x].isnumeric()):
             break
+
     reason = reason[x+2:]
+    muteaction = seconds[:-1]
+    secondsint = int(seconds[:-1])
 
     if seconds[-1] == "s":
-        seconds = int(seconds[:-1])
+        if secondsint == 1:
+            muteaction += " second"
+        else:
+            muteaction += " seconds"
     elif seconds[-1] == "m":
-        seconds = int(seconds[:-1]) * 60
+        if secondsint == 1:
+            muteaction += " minute"
+        else:
+            muteaction += " minutes"
+        secondsint *= 60
     elif seconds[-1] == "h":
-        seconds = int(seconds[:-1]) * 60 * 60
+        if secondsint == 1:
+            muteaction += " hour"
+        else:
+            muteaction += " hours"
+        secondsint *= 60 * 60
     elif seconds[-1] == "d":
-        seconds = int(seconds[:-1]) * 60 * 60 * 24
+        if secondsint == 1:
+            muteaction += " day"
+        else:
+            muteaction += " days"
+        secondsint *= 60 * 60 * 24
     elif seconds[-1] == "y":
-        seconds = int(seconds[:-1]) * 60 * 60 * 24 * 365'''
+        if secondsint == 1:
+            muteaction += " year"
+        else:
+            muteaction += " years"
+        secondsint *= 60 * 60 * 24 * 365
 
-    embed,message = modactions(ctx,user,reason,member,healthguild,mod,"muted indefinitely")
+    embed,message = modactions(ctx,user,reason,member,healthguild,mod,"muted for " + muteaction)
     muted = healthguild.get_role(716467961631866922)
     if embed == "notmod":
         return
@@ -247,9 +284,14 @@ async def mute(ctx, *, arg):
         await ctx.channel.send(embed=embed)
         embed2,modlog = modlogembed("mute", reason, ctx, 0xfffcbb, user)
         await modlog.send(embed = embed2)
-        await user.send(message)
-        #time.sleep(seconds)
-        #await member.remove_roles(muted, reason="Unmuted", atomic=True)
+        try:
+            await user.send(message)
+        except:
+            print(user.mention + " doesn't allow DMs. It's likely a bot.")
+        await asyncio.sleep(secondsint)
+        await member.remove_roles(muted, reason="Unmuted", atomic=True)
+        embed2,modlog = modlogembed("unmute", "Timed unmute", ctx, 0x149414, user)
+        await modlog.send(embed = embed2)
     else:
         await ctx.channel.send("You cannot mute this user.")
 
@@ -270,7 +312,10 @@ async def unmute(ctx, *, arg):
         await ctx.channel.send(embed=embed)
         embed2,modlog = modlogembed("unmute", reason, ctx, 0x149414, user)
         await modlog.send(embed = embed2)
-        await user.send(message)
+        try:
+            await user.send(message)
+        except:
+            print(user.mention + " doesn't allow DMs. It's likely a bot.")
     else:
         await ctx.channel.send("You cannot unmute this user.")
 
@@ -387,11 +432,11 @@ def album(m):
     deathmagic = (["deathmagic","victim","stonefist","mentoday","fleshworld","courtshipii","darkenough","salvia","newcoke","lalooks","l.a.looks","hurtyourself","drugsexist"],755047460019372062)
     vol4 = (["vol4","vol.4","psychonaut","feelnothing","godbotherer","blackstatic","lossdeluxe","nc-17","nc17","themessage","ratwars","strangedays","wrongbag","slavesoffear","decimation"],755047461944557618)
     disco4 = (["disco4","cyberpunk2020","cyberpunk2.0.0.0","cyberpunk2.0.0.0.","body/prison","bodyprison","powerfantasy","judgmentnight","innocence","fullofhealth","colors","hateyou","dflooks","d.f.looks","massgrave","deliciousape","hardtobeagod"],755050227215630426)
-    disco3 = (["disco3","euphoria","slumlords","crusher"],755050414008696852)
+    disco3 = (["disco3","euphoria","slumlord","crusher"],755050414008696852)
     disco2 = (["disco2","usaboys","u.s.a.boys"],755050225751556117)
     mp3 = (["tears"],755047462896533605)
     
-    albums = [health,getcolor,deathmagic,vol4,disco2,disco3,disco4]
+    albums = [health,getcolor,deathmagic,vol4,disco2,disco3,disco4,mp3]
 
     for x in albums:
         for y in x[0]:
@@ -417,7 +462,10 @@ async def on_message(message):
         #    else:
         #        await message.channel.send(trigger)
         #    return
-        await bot.process_commands(message)
+        try:
+            await bot.process_commands(message)
+        except:
+            print(message.content + " is an invalid command.")
         return
 
     if message.author.id == 225522547154747392: #replacing the stock bot messages with HEALTH BOT messages
@@ -438,12 +486,14 @@ async def on_message(message):
                 emoji = bot.get_emoji(x)
                 await message.add_reaction(emoji)
 
-    if "pain" in "".join(message.content.lower().split()):
-        max = bot.get_emoji(697638034937479239)
-        await message.add_reaction(max)
+        if "pain" in "".join(message.content.lower().split()):
+            max = bot.get_emoji(697638034937479239)
+            await message.add_reaction(max)
 
     if message.content == "health joao qwerty":
-        await message.reply("test")
+        logs = await bot.get_guild(688206199992483851).audit_logs(limit=1, action=discord.AuditLogAction.ban).flatten()
+        logs = logs[0]
+        await message.channel.send(logs)
     
 
 ## MISC EVENTS ##
@@ -480,9 +530,7 @@ async def on_member_ban(healthcord,user):
     if "​​​" in logs.reason:
         return
     modlog = bot.get_channel(733746271684263936)
-    userstr = user.name + "#" + user.discriminator
-    modstr = logs.user.name + "#" + logs.user.discriminator
-    embed=discord.Embed(title= "manual ban", description= "**Offender:** " + userstr + " / " + user.mention + "\n**Reason:** " + logs.reason + "\n**Responsible moderator: **" + modstr,color= 0xff0000)
+    embed=discord.Embed(title= "manual ban", description= "**Offender:** " + user.mention + " / " + user.mention + "\n**Reason:** " + logs.reason + "\n**Responsible moderator: **" + logs.user.mention,color= 0xff0000)
     await modlog.send(embed= embed)
 
 @bot.event
@@ -492,9 +540,7 @@ async def on_member_unban(healthcord,user):
     if "​​​" in logs.reason:
         return
     modlog = bot.get_channel(733746271684263936)
-    userstr = user.name + "#" + user.discriminator
-    modstr = logs.user.name + "#" + logs.user.discriminator
-    embed = discord.Embed(title= "manual unban", description= "**Offender:** " + userstr + " / " + user.mention + "\n**Responsible moderator: **" + modstr,color= 0xff0000)
+    embed = discord.Embed(title= "manual unban", description= "**Offender:** " + user.mention + "\n**Responsible moderator: **" + logs.user.mention,color= 0xff0000)
     await modlog.send(embed= embed)
 
 @bot.event
@@ -558,7 +604,7 @@ async def on_member_remove(member):
         else:
             minutes = math.floor(timeonserver.seconds / 60)
             seconds = timeonserver.seconds % 60
-            timestrAux = "1 hour, "
+            timestrAux = ""
             if minutes:
                 if minutes == 1:
                     timestrAux += "1 minute, "
