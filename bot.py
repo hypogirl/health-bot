@@ -236,46 +236,50 @@ async def mute(ctx, *, arg):
         return
 
     seconds = ""
+    x = 0
     for x in range(len(reason)):
         seconds += reason[x]
         if not(reason[x].isnumeric()):
             break
 
-    reason = reason[x+2:]
     muteaction = seconds[:-1]
-    secondsint = int(seconds[:-1])
+    if muteaction:
+        reason = reason[x+2:]
+        secondsint = int(seconds[:-1])
 
-    if seconds[-1] == "s":
-        if secondsint == 1:
-            muteaction += " second"
-        else:
-            muteaction += " seconds"
-    elif seconds[-1] == "m":
-        if secondsint == 1:
-            muteaction += " minute"
-        else:
-            muteaction += " minutes"
-        secondsint *= 60
-    elif seconds[-1] == "h":
-        if secondsint == 1:
-            muteaction += " hour"
-        else:
-            muteaction += " hours"
-        secondsint *= 60 * 60
-    elif seconds[-1] == "d":
-        if secondsint == 1:
-            muteaction += " day"
-        else:
-            muteaction += " days"
-        secondsint *= 60 * 60 * 24
-    elif seconds[-1] == "y":
-        if secondsint == 1:
-            muteaction += " year"
-        else:
-            muteaction += " years"
-        secondsint *= 60 * 60 * 24 * 365
+        if seconds[-1] == "s":
+            if secondsint == 1:
+                muteaction += " second"
+            else:
+                muteaction += " seconds"
+        elif seconds[-1] == "m":
+            if secondsint == 1:
+                muteaction += " minute"
+            else:
+                muteaction += " minutes"
+            secondsint *= 60
+        elif seconds[-1] == "h":
+            if secondsint == 1:
+                muteaction += " hour"
+            else:
+                muteaction += " hours"
+            secondsint *= 60 * 60
+        elif seconds[-1] == "d":
+            if secondsint == 1:
+                muteaction += " day"
+            else:
+                muteaction += " days"
+            secondsint *= 60 * 60 * 24
+        elif seconds[-1] == "y":
+            if secondsint == 1:
+                muteaction += " year"
+            else:
+                muteaction += " years"
+            secondsint *= 60 * 60 * 24 * 365
 
-    embed,message = modactions(ctx,user,reason,member,healthguild,mod,"muted for " + muteaction)
+        embed,message = modactions(ctx,user,reason,member,healthguild,mod,"muted for " + muteaction)
+    else:
+        embed,message = modactions(ctx,user,reason,member,healthguild,mod,"muted")
     muted = healthguild.get_role(716467961631866922)
     if embed == "notmod":
         return
@@ -288,10 +292,11 @@ async def mute(ctx, *, arg):
             await user.send(message)
         except:
             print(user.mention + " doesn't allow DMs. It's likely a bot.")
-        await asyncio.sleep(secondsint)
-        await member.remove_roles(muted, reason="Unmuted", atomic=True)
-        embed2,modlog = modlogembed("unmute", "Timed unmute", ctx, 0x149414, user)
-        await modlog.send(embed = embed2)
+        if muteaction:
+            await asyncio.sleep(secondsint)
+            await member.remove_roles(muted, reason="Unmuted", atomic=True)
+            embed2,modlog = modlogembed("unmute", "Timed unmute", ctx, 0x149414, user)
+            await modlog.send(embed = embed2)
     else:
         await ctx.channel.send("You cannot mute this user.")
 
@@ -393,23 +398,35 @@ async def purgeuser(ctx, *, arg):
 
 
 @bot.command()
-async def createtrigger(ctx, arg1, arg2):
+async def createtrigger(ctx, *, arg):
     if checkmod(ctx):
-        sql = "INSERT INTO `Trigger` (name, content,embed) VALUES (%s, %s, 0)"
+        '''sql = "INSERT INTO `Trigger` (name, content,embed) VALUES (%s, %s, 0)"
         val = (arg1, arg2)
         mycursor = healthbot.cursor()
         mycursor.execute(sql, val)
         healthbot.commit()
-        await ctx.channel.send("Trigger created successfully.")
+        await ctx.channel.send("Trigger created successfully.")'''
+        left = False
+        for x in range(len(arg)):
+            if arg[x] == " ":
+                left = arg[:x]
+                right = arg[x+1:]
+                break
+        if not(left):
+            await ctx.channel.send("Invalid trigger.")
+
+
+
 
 @bot.command()
-async def deletetrigger(ctx, arg):
+async def deletetrigger(ctx, *, arg):
     if checkmod(ctx):
-        mycursor = healthbot.cursor()
+        '''mycursor = healthbot.cursor()
         sql = "DELETE FROM `Trigger` WHERE name = '" + arg + "'"
         mycursor.execute(sql)
         healthbot.commit()
-        await ctx.channel.send("Trigger deleted successfully.")
+        await ctx.channel.send("Trigger deleted successfully.")'''
+        # temporary solution #
 
 
 
@@ -423,7 +440,7 @@ async def riff(ctx):
 
 
 
-def album(m):
+def album(m,mentions):
     albuml = []
     m = "".join(m.lower().split()) #remove spaces, all lowercase, makes it easier for search
 
@@ -435,14 +452,45 @@ def album(m):
     disco3 = (["disco3","euphoria","slumlord","crusher"],755050414008696852)
     disco2 = (["disco2","usaboys","u.s.a.boys"],755050225751556117)
     mp3 = (["tears"],755047462896533605)
+    payne = (["pain", "<:max:697638034937479239>"],697638034937479239)
+    powercaco = (["powerfantasy"],766716666540326932)
+    ping = (["774402228084670515"],788902728658452481)
+
+    cacoheart = ([("good","love","based","thank","great","amazing","well"),("bad","cringe","dumb","idiot","stupid","bug","n'twork","notwork","suck","shit","poo","bitch")],804113756622684220,[697627002202750976,708429172737048606,735209358379450471,736196814654668830,"notfunny"])
+
     
-    albums = [health,getcolor,deathmagic,vol4,disco2,disco3,disco4,mp3]
+    albums = [health,getcolor,deathmagic,vol4,disco2,disco3,disco4,mp3,payne,powercaco]
 
     for x in albums:
         for y in x[0]:
             if y in m:
                 albuml.append(x[1])
                 break
+
+    if "bot" in m:
+        flag = True
+        for x in cacoheart[0][0]:
+            if x in m:
+                albuml.append(cacoheart[1])
+                flag = False
+                break
+        if flag:
+            for x in cacoheart[0][1]:
+                if x in m:
+                    emojiID = random.choice(cacoheart[2])
+                    if emojiID == "notfunny":
+                        albuml.append(733376041816424489)
+                        albuml.append(733376041686532127)
+                        break
+                    else:
+                        albuml.append(emojiID)
+                        break
+
+    for x in mentions:
+        if x.id == 774402228084670515:
+            albuml.append(788902728658452481)
+            break
+
 
     return albuml    
 
@@ -480,20 +528,16 @@ async def on_message(message):
         await message.channel.send(random.choice(o))
     
     if message.channel.id != 707011962898481254: #we dont want this on #on-the-real certainly
-        emojialbum = album(message.content) #finding if there is a mention to a HEALTH album in a message and reacting with the album cover
+        emojialbum = album(message.content,message.mentions) #finding if there is a mention to a HEALTH album in a message and reacting with the album cover
         if emojialbum:
             for x in emojialbum:
                 emoji = bot.get_emoji(x)
                 await message.add_reaction(emoji)
 
-        if "pain" in "".join(message.content.lower().split()):
-            max = bot.get_emoji(697638034937479239)
-            await message.add_reaction(max)
+    #if message.content
 
     if message.content == "health joao qwerty":
-        logs = await bot.get_guild(688206199992483851).audit_logs(limit=1, action=discord.AuditLogAction.ban).flatten()
-        logs = logs[0]
-        await message.channel.send(logs)
+        await message.channel.send("nothing to test")
     
 
 ## MISC EVENTS ##
@@ -530,7 +574,7 @@ async def on_member_ban(healthcord,user):
     if "​​​" in logs.reason:
         return
     modlog = bot.get_channel(733746271684263936)
-    embed=discord.Embed(title= "manual ban", description= "**Offender:** " + user.mention + " / " + user.mention + "\n**Reason:** " + logs.reason + "\n**Responsible moderator: **" + logs.user.mention,color= 0xff0000)
+    embed=discord.Embed(title= "manual ban", description= "**Offender:** " + user.mention + "\n**Reason:** " + logs.reason + "\n**Responsible moderator: **" + logs.user.mention,color= 0xff0000)
     await modlog.send(embed= embed)
 
 @bot.event
