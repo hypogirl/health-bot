@@ -519,6 +519,7 @@ async def on_message(message):
     if message.author.id == 225522547154747392: #replacing the stock bot messages with HEALTH BOT messages
         embedc=discord.Embed(title= "STOCKS", description= message.embeds[0].description, color=0xff0000)
         embedc.set_footer(text= message.embeds[0].footer.text)
+        embedc.add_field(name="​", value="[Command Help](https://stockbot.us/c/?m=1&g=1#statistics)", inline=False)
         await message.channel.send(embed= embedc)
         await message.delete()
 
