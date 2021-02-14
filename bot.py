@@ -395,6 +395,32 @@ async def purgeuser(ctx, *, arg):
     embed.set_author(name= str(initlimit) + " specific user's messages deleted | #" + ctx.channel.name)
     await modlog.send(embed= embed)
 
+@bot.command()
+async def motd(ctx, *, arg):    # setting someone as the member of the day
+    if not(checkmod(ctx)):
+        return
+    healthguild = bot.get_guild(688206199992483851)
+    role = healthguild.get_role(753720334993326161)
+    userID = ""
+
+    for x in range(len(arg)):
+        if arg[x].isnumeric():
+            userID += arg[x]
+        if arg[x] == ">":
+            break
+
+    userID = int(userID)
+    member = healthguild.get_member(userID)
+    emojis = [697621015337107466,737315507509657661,697879872391086113,697880868743544903,753291933950017627,753291934008606762,804113756622684220,709794793051390153]
+    emoji = bot.get_emoji(random.choice(emojis))
+    await member.add_roles(role,reason="Member of the day", atomic=True)
+    message = await ctx.channel.send(member.mention + " is member of the day!")
+    await message.add_reaction(emoji)
+    await asyncio.sleep(86400)
+    await member.remove_roles(role,reason="End of the member of the day", atomic=True)
+
+    
+
 
 
 @bot.command()
@@ -456,7 +482,7 @@ def album(m,mentions):
     powercaco = (["powerfantasy"],766716666540326932)
     ping = (["774402228084670515"],788902728658452481)
 
-    cacoheart = ([("good","love","based","thank","great","amazing","well"),("bad","cringe","dumb","idiot","stupid","bug","n'twork","notwork","suck","shit","poo","bitch")],804113756622684220,[697627002202750976,708429172737048606,735209358379450471,736196814654668830,"notfunny"])
+    cacoheart = ([("good","love","based","thank","great","amazing","well"),("bad","racist","racism","cringe","dumb","idiot","stupid","bug","n'twork","notwork","suck","shit","poo","bitch")],804113756622684220,[697627002202750976,708429172737048606,735209358379450471,736196814654668830,"notfunny"])
 
     
     albums = [health,getcolor,deathmagic,vol4,disco2,disco3,disco4,mp3,payne,powercaco]
@@ -545,7 +571,7 @@ async def on_message(message):
 
 @bot.event
 async def on_message_edit(before,after):
-    if before.channel.id == 733412404351991846: # curated channel, it prevents the channel to be spammed with cacostar counter updates
+    if before.channel.id in [733412404351991846,791453462063742987]: # curated channels, it prevents the channel to be spammed with cacostar counter updates
         return
     if before.content != after.content:
         userstr = before.author.name + "#" + before.author.discriminator
@@ -556,7 +582,7 @@ async def on_message_edit(before,after):
 
 @bot.event
 async def on_message_delete(message):
-    if message.author.id == 372175794895585280: #its the haikubot ID, its kinda useless showing when these are deleted
+    if message.author.id in [372175794895585280,225522547154747392]: #its the haikubot and stock bot's ID, its kinda useless showing when these are deleted
         return
     userstr = message.author.name + "#" + message.author.discriminator
     avatarurl = "https://cdn.discordapp.com/avatars/" + str(message.author.id) + "/" + message.author.avatar + ".webp"
@@ -572,6 +598,8 @@ async def on_message_delete(message):
 async def on_member_ban(healthcord,user):
     logs = await healthcord.audit_logs(limit=1, action=discord.AuditLogAction.ban).flatten()
     logs = logs[0]
+    if not(logs.reason):
+        logs.reason = "No reason was specified."
     if "​​​" in logs.reason:
         return
     modlog = bot.get_channel(733746271684263936)
@@ -582,6 +610,8 @@ async def on_member_ban(healthcord,user):
 async def on_member_unban(healthcord,user):
     logs = await healthcord.audit_logs(limit=1, action=discord.AuditLogAction.unban).flatten()
     logs = logs[0]
+    if not(logs.reason):
+        logs.reason = "No reason was specified."
     if "​​​" in logs.reason:
         return
     modlog = bot.get_channel(733746271684263936)
@@ -593,6 +623,15 @@ async def on_member_remove(member):
     modlog = bot.get_channel(733746271684263936)
     memberstr = member.name + "#" + member.discriminator
     timeonserver = datetime.now() - member.joined_at
+    healthcord = bot.get_guild(688206199992483851)
+    logs = await healthcord.audit_logs(limit=1, action=discord.AuditLogAction.kick).flatten()
+    logs = logs[0]
+    if not(logs.reason):
+        logs.reason = "No reason specified."
+    if "​​​" not in logs.reason and member.id == logs.target.id:
+        embed=discord.Embed(title= "manual kick", description= "**Offender:** " + member.mention + "\n**Reason:** " + logs.reason + "\n**Responsible moderator: **" + logs.user.mention,color= 0xff0000)
+        await modlog.send(embed= embed)
+
     timestr = " joined "
     if timeonserver.days:
         if timeonserver.days >= 365:
