@@ -35,7 +35,7 @@ These two commands are very simple and are used to add or remove a specific trig
 Purges a given number of messages from a channel, counting from the most recently sent.
 
 **!motd**<br>
-There's a tradition of giving a special role named "Member Of The Day" to users who boost the server or users celebrating their birthday. This command automates the process and takes the role away from the user 24 hours after giving it. It will work with both the mention of the user the action is directed to or their ID.
+There's a tradition of giving a special role named "Member Of The Day" to users who boost the server or users celebrating their birthday. This command automates the process and takes the role away from the user 24 hours after giving it. It will work with both the mention of the user the role is being given to or their ID.
 
 **!spam**<br>
 This featured is mostly useless but it exists, so it'll, at least, be described here. It sends out the message "spam" a given number of times. It is easily abusable and there is no limit number of messages to be sent.
@@ -45,7 +45,7 @@ The bot uses two channels to log events.
   1. ``#mod-log`` is used for most events.<br>
     - Firstly, this channel logs bans, unbans, kicks, warns, muting and unmuting, whether they were made with the help of the bot or manually; if these events were created with the bot, the logs will include a link that allow the mods to jump to the message that caused the event.<br>
     - Secondly, this channel will also log the users who leave the server, showing how long they had been there and what roles they had.<br>
-    - A third important type of event is the creation of invites, assuming they can be used for less desired purposes like raiding or bot spamming, the bot keeps logs of the user who created the role and whether or not they have a default Discord profile picture (as silly as this might sound, it can be useful to know if an account is recent or a bot). On top of that, the bot allows moderators to delete the invite by simply reacting to it with a "❌" emoji.<br>
-    Probably the less occuring event is the use of the !purge command. The bot logs which users got their messages deleted and how many messages those were.
+    - A third important type of event is the creation of invites, assuming they can be used for less desired purposes like raiding or bot spamming, the bot keeps logs of the user who created the invite and whether or not they have a default Discord profile picture (as silly as this might sound, it can be useful to know if an account is recent or if it's a bot). On top of that, the bot allows moderators to delete the invite by simply reacting to it with a "❌" emoji.<br>
+    - Probably the less occuring event is the use of the !purge command. The bot logs which users got their messages deleted and how many messages were deleted.
   2. ``#big-brother-is-watching`` simply logs whenever a message is edited or deleted and shows the content of it (in the case of editing, it shows the content before and after the editing).
 
