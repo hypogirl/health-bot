@@ -1,5 +1,5 @@
 # HEALTH BOT
-Python discord bot for the American band HEALTH's server.
+Python discord bot for the server of the American music band HEALTH.
 
 **Note:** This code is written specifically for the [HEALTH discord server](http://discord.gg/health "HEALTH discord server") as it includes specific channel and role IDs. In the future I might make the code flexible for other servers, but, for now, if you decide to use this bot, you should be careful with those.
 
