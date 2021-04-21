@@ -3,6 +3,25 @@ Python discord bot for the server of the American music band HEALTH.
 
 **Note:** This code is written specifically for the [HEALTH discord server](http://discord.gg/health "HEALTH discord server") as it includes specific channel and role IDs. In the future I might make the code flexible for other servers, but, for now, if you decide to use this bot, you should be careful with those.
 
+## Set up
+
+### Requirements
+
+- Python 3+
+- Pypi
+- Python3-venv
+
+### Set up procedure:
+
+- Clone the repo
+- Navigate to the project directory
+- Run `source bin/activate` to activate python-venv
+- Run `pip install -r requirements.txt` to install dependencies
+
+### Contributing
+
+- When you update the requirements, just remove the `requirements.txt` then run `pip freeze > requirements.txt`
+
 ## User-friendly features
 
 
