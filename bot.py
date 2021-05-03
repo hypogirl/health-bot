@@ -1,20 +1,21 @@
-import discord
+from datetime import datetime
 from discord.ext import commands
+from dotenv import dotenv_values
+import asyncio
+import auxfunctions as aux
+import discord
+import math
+import mysql.connector
 import random
 import time
-import math
-import asyncio
-from datetime import datetime
-import bottoken
-import mysql.connector
-import dbconnect
-import auxfunctions as aux
+
+config = dotenv_values('.env')
 
 healthbot = mysql.connector.connect(
-  host=dbconnect.h,
-  user=dbconnect.u,
-  password=dbconnect.p,
-  database="healthbot"
+  host=config['DB_HOST'],
+  user=config['DB_USERNAME'],
+  password=config['DB_PASSWORD'],
+  database=config['DB_NAME']
 )
 
 intents = discord.Intents().all()
@@ -373,7 +374,7 @@ def album(m,mentions):
 
     cacoheart = ([("good","love","based","thank","great","amazing","well"),("bad","racist","racism","cringe","dumb","idiot","stupid","bug","n'twork","notwork","suck","shit","poo","bitch")],804113756622684220,[697627002202750976,708429172737048606,735209358379450471,736196814654668830,"notfunny"])
 
-    
+
     albums = [health,getcolor,deathmagic,vol4,disco2,disco3,disco4,mp3,payne,powercaco]
 
     for x in albums:
@@ -407,7 +408,7 @@ def album(m,mentions):
             break
 
 
-    return albuml    
+    return albuml
 
 
 
@@ -415,7 +416,7 @@ def album(m,mentions):
 async def on_message(message):
     if message.author == bot.user:
         return
-  
+
     if message.content.startswith("!"): #recognising a command
         #trigger,e = checkdb(message.content[1:])
         #if trigger:
@@ -445,7 +446,7 @@ async def on_message(message):
         o = ["Oh no... not me.","Why would anyone want this","What is wrong with you?","No no no no no no"]
         await message.channel.send(random.choice(o))
 
-    
+
     if message.channel.id != 707011962898481254: #we dont want this on #on-the-real certainly
         emojialbum = album(message.content,message.mentions) #finding if there is a mention to a HEALTH album in a message and reacting with the album cover
         if emojialbum:
@@ -455,7 +456,7 @@ async def on_message(message):
 
     #if message.content == "health joao qwerty":
     #    await message.channel.send("nothing to test")
-    
+
 
 ## MISC EVENTS ##
 
@@ -636,7 +637,7 @@ async def on_member_remove(member):
         timestr = timestr[:-2] + " ago."
     else:
         timestr += " ago."
-                
+
     rolestr = ""
     for role in member.roles[1:]:
         rolestr += role.mention + ", "
@@ -648,11 +649,11 @@ async def on_member_remove(member):
         avatarurl = "https://cdn.discordapp.com/avatars/" + str(member.id) + "/" + member.avatar + ".webp"
     else:
         avatarurl = "https://cdn.discordapp.com/avatars/774402228084670515/5ef539d5f3e8d576c4854768727bc75a.png"
-    
+
     embed = discord.Embed(title = "Member left", description = member.mention + timestr + "\n**Roles:** " + rolestr, color=0xff0000)
     embed.set_author(name=memberstr, icon_url=avatarurl)
     await modlog.send(embed= embed)
-    
 
 
-bot.run(bottoken.token)
+
+bot.run(config['BOT_TOKEN'])
