@@ -1,12 +1,10 @@
 #!/bin/bash
 
-#simple cron job to make sure the bot is up
 if ! pgrep -f 'bot.py'
 then
-    nohup python3 /home/hackermans/health-bot/bot.py & > /var/tmp/bot.out
-# run the test, remove the two lines below afterwards
+    echo "$(date) Not running... Starting up" >> /home/hackermans/out_test
+    /usr/bin/python3 /home/hackermans/health-bot/bot.py >> /home/hackermans/out_test 2>&1 &
+ # run the test, remove the two lines below afterwards
 else
-    echo "running" > ~/out_test.txt
+    echo "$(date) running" >> /home/hackermans/out_test
 fi
-
-
