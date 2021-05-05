@@ -549,7 +549,7 @@ async def on_reaction_add(reaction, user):
         await reaction.message.edit(embed = embed)
     healthcurated = bot.get_channel(733412404351991846)
     curatedrussia = bot.get_channel(791453462063742987)
-    if (reaction.emoji.name == 839294911400509450 or reaction.emoji.name == 839294911400509450) and reaction.count == 5:
+    if (reaction.emoji.id == 839294911400509450 or reaction.emoji.id == 839294911400509450) and reaction.count == 5:
         serverid = str(reaction.message.guild.id)
         channelid = str(reaction.message.channel.id)
         messageid = str(reaction.message.id)
@@ -568,7 +568,7 @@ async def on_reaction_add(reaction, user):
             embedc.set_image(url=reaction.message.attachments[0].url)
         embedc.add_field(name="Source", value="[Jump!](" + messageurl + ")", inline=False)
         embedc.set_footer(text=reaction.message.id)
-        if reaction.emoji.name == 839294911400509450:
+        if reaction.emoji.id == 839294911400509450:
             contentstr = "<#" + str(reaction.message.channel.id) + ">"
             new = await healthcurated.send(contentstr, embed=embedc)
         else:
