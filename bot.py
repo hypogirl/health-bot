@@ -547,6 +547,33 @@ async def on_reaction_add(reaction, user):
         embed.set_author(name="New invite (deleted)")
         await invite.delete()
         await reaction.message.edit(embed = embed)
+    healthcurated = bot.get_channel(733412404351991846)
+    curatedrussia = bot.get_channel(791453462063742987)
+    if (reaction.emoji.name == "cacostar" or reaction.emoji.name == "russtar") and reaction.count == 5:
+        serverid = str(reaction.message.guild.id)
+        channelid = str(reaction.message.channel.id)
+        messageid = str(reaction.message.id)
+        messageurl = "https://discord.com/channels/" + serverid + "/" + channelid + "/" + messageid
+        avatarurl = "https://cdn.discordapp.com/avatars/" + str(reaction.message.author.id) + "/" + reaction.message.author.avatar + ".webp"
+        if not(reaction.message.attachments) and not(reaction.message.content):
+            embedc=discord.Embed(description=reaction.message.embeds[0].description, color=0xf05b72)
+            if reaction.message.author.id == 742315532472025109:
+                embedc.set_author(name="Haiku by " + reaction.message.embeds[0].footer.text[2:])
+            else:
+                embedc.set_author(name=reaction.message.author.display_name, icon_url=avatarurl)
+        else:
+            embedc=discord.Embed(description=reaction.message.content, color=0xf05b72)
+            embedc.set_author(name=reaction.message.author.display_name, icon_url=avatarurl)
+        if reaction.message.attachments:
+            embedc.set_image(url=reaction.message.attachments[0].url)
+        embedc.add_field(name="Source", value="[Jump!](" + messageurl + ")", inline=False)
+        embedc.set_footer(text=reaction.message.id)
+        if reaction.emoji.name == "cacostar":
+            contentstr = "<#" + str(reaction.message.channel.id) + ">"
+            new = await healthcurated.send(contentstr, embed=embedc)
+        else:
+            contentstr = "<#" + str(reaction.message.channel.id) + ">"
+            new = await curatedrussia.send(contentstr, embed=embedc)
 
 @bot.event
 async def on_member_remove(member):
