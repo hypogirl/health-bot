@@ -8,8 +8,9 @@ import math
 import mysql.connector
 import random
 import time
+from pathlib import Path
 
-config = dotenv_values('.env')
+config = dotenv_values(str(Path.home()) + '/health-bot/.env')
 
 healthbot = mysql.connector.connect(
   host=config['DB_HOST'],
