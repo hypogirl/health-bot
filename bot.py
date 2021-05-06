@@ -10,7 +10,7 @@ import random
 import time
 from pathlib import Path
 
-config = dotenv_values(str(Path.home()) + '/health-bot/.env')
+config = dotenv_values('.env')
 
 healthbot = mysql.connector.connect(
   host=config['DB_HOST'],
