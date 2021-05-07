@@ -1,50 +1,48 @@
 import discord
+from dotenv import dotenv_values
 
-def checkmod(bot,ctx):
-    healthguild = bot.get_guild(688206199992483851)
-    mod = healthguild.get_role(689280713153183795)
-    return mod in ctx.author.roles
+config = dotenv_values('.env')
 
-def getvars(bot,ctx,arg,healthguild): # gets the user,reason and member for the mod functions
-    userID = ""
+def checkmod(ctx):
+    mod = ctx.guild.get_role(config['MOD_ROLE_ID'])
+    admin = ctx.guild.get_role(config['ADMIN_ROLE_ID'])
+    return mod in ctx.author.roles or admin in ctx.author.roles
+
+def getvars(bot, ctx, arg): # gets the user,reason and member for the mod functions
+    memberID = ""
 
     for x in range(len(arg)):
         if arg[x].isnumeric():
-            userID += arg[x]
-        if arg[x] == ">":
+            memberID += arg[x]
+        if arg[x] == ">" or arg[x] == " ":
             break
 
     reason = arg[x+2:]
-    userID = int(userID)
-    user = bot.get_user(userID)
-    member = healthguild.get_member(userID)
+    member = ctx.guild.get_member(memberID)
     
-    return user,reason,member,userID
+    return reason, member, memberID 
 
-def modactions(ctx,user,reason,member,healthguild,mod,action): # writes the embed and dm for the mod functions
-    if mod in ctx.author.roles and member.id != 774402228084670515:
-        if ctx.author.top_role > member.top_role or ctx.author.id == 233290361877823498:
-            if user.avatar:
-                avatarurl = "https://cdn.discordapp.com/avatars/" + str(user.id) + "/" + user.avatar + ".webp"
-            else:
-                avatarurl = "https://cdn.discordapp.com/avatars/774402228084670515/5ef539d5f3e8d576c4854768727bc75a.png"
-            userstr = user.name + "#" + user.discriminator
-            embed = False
-            message = False
-            if reason == "":
-                embed=discord.Embed(title=" ", color=0xff0000)
-                embed.set_author(name=userstr+" has been "+action+".", icon_url=avatarurl)
-                message = "**You have been "+action+" by a moderator in HEALTHcord.**"
-            else:
-                embed=discord.Embed(title=" ", description="**Reason:** "+reason, color=0xff0000)
-                embed.set_author(name=userstr+" has been "+action+".", icon_url=avatarurl)
-                message = "**You have been "+action+" by a moderator in HEALTHcord.\nReason:** " + reason
-            return embed,message
-        return False, False
-    else:
-        return "notmod",False
+def modactions(ctx, reason, member, action): # writes the embed and dm for the mod functions
+    if ctx.author.top_role > member.top_role or ctx.author.id == config['OWNER_ID']:
+        if member.avatar:
+            avatarurl = "https://cdn.discordapp.com/avatars/" + str(member.id) + "/" + member.avatar + ".webp"
+        else:
+            avatarurl = "https://cdn.discordapp.com/avatars/774402228084670515/5ef539d5f3e8d576c4854768727bc75a.png"
+        memberstr = member.name + "#" + member.discriminator
+        embed = False
+        message = False
+        if reason:
+            embed=discord.Embed(title=" ", description="**Reason:** "+reason, color=0xff0000)
+            embed.set_author(name= memberstr + " has been " + action + ".", icon_url= avatarurl)
+            message = "**You have been "+action+" by a moderator in HEALTHcord.\nReason:** " + reason
+        else:
+            embed=discord.Embed(title=" ", color=0xff0000)
+            embed.set_author(name= memberstr + " has been " + action + ".", icon_url= avatarurl)
+            message = "**You have been " + action + " by a moderator in HEALTHcord.**"
+        return embed,message
+    return False, False
 
-def modlogembed(bot,action, reason, message, colour, user): # building the embed for the mod log channel
+def modlogembed(bot, action, reason, message, colour, user): # building the embed for the mod log channel
     modlog = bot.get_channel(733746271684263936)
     serverid = str(message.guild.id)
     channelid = str(message.channel.id)
@@ -56,7 +54,7 @@ def modlogembed(bot,action, reason, message, colour, user): # building the embed
     embed.add_field(name="-----", value="[Jump to incident](" + messageurl + ")", inline=False)
     return embed, modlog
 
-def timestrbuilder(seconds,secondsint,suffix):
+def timestrbuilder(seconds, secondsint, suffix):
     if seconds[-1] == "s":
         if secondsint == 1:
             suffix += " second"
