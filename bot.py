@@ -8,7 +8,7 @@ import math
 import mysql.connector
 import random
 import time
-from pathlib import Path
+#from pathlib import Path
 
 config = dotenv_values('.env')
 
@@ -50,7 +50,7 @@ async def help(ctx, *arg):
         return
     await ctx.author.send(embed=embed)
     if ctx.author.dm_channel != ctx.channel:
-        await ctx.channel.send(ctx.author.mention + ", I've sent you a DM with the help menu.")
+        await ctx.send(ctx.author.mention + ", I've sent you a DM with the help menu.")
 
 
 def checkdb(t):
@@ -84,11 +84,11 @@ async def warn(ctx, *, arg):
         
     reason, member, memberID = aux.getvars(bot, ctx, arg)
     if not(member):
-        await ctx.channel.send(member.mention + " is not a member of HEALTHcord.")
+        await ctx.send(member.mention + " is not a member of HEALTHcord.")
         return
     embed,message = aux.modactions(ctx, reason, member, "warned")
     if embed:
-        await ctx.channel.send(embed=embed)
+        await ctx.send(embed=embed)
         embed2,modlog = aux.modlogembed(bot,"warn", reason, ctx, 0xfffcbb, member)
         await modlog.send(embed= embed2)
         try:
@@ -96,7 +96,7 @@ async def warn(ctx, *, arg):
         except:
             print(member.mention + " doesn't allow DMs. It's likely a bot.")
     else:
-        await ctx.channel.send("You cannot warn this user.")
+        await ctx.send("You cannot warn this user.")
 
 @bot.command()
 async def ban(ctx, *, arg):
@@ -105,7 +105,7 @@ async def ban(ctx, *, arg):
 
     reason, member, memberID = aux.getvars(bot, ctx, arg)
     if not(member):
-        await ctx.channel.send(member.mention + " is not a member of HEALTHcord.")
+        await ctx.send(member.mention + " is not a member of HEALTHcord.")
         return
     embed,message = aux.modactions(ctx, reason, member, "banned")
     if embed:
@@ -113,7 +113,7 @@ async def ban(ctx, *, arg):
             await ctx.guild.ban(member,reason="​​​", delete_message_days=0)
         else:
             await ctx.guild.ban(member,reason=reason + "​​​", delete_message_days=0)
-        await ctx.channel.send(embed=embed)
+        await ctx.send(embed=embed)
         embed2,modlog = aux.modlogembed(bot,"ban", reason, ctx, 0xff0000, member)
         await modlog.send(embed = embed2)
         try:
@@ -121,7 +121,7 @@ async def ban(ctx, *, arg):
         except:
             print(member.mention + " doesn't allow DMs. It's likely a bot.")
     else:
-        await ctx.channel.send("You cannot ban this user.")
+        await ctx.send("You cannot ban this user.")
 
 @bot.command()
 async def unban(ctx, *, arg):
@@ -130,7 +130,7 @@ async def unban(ctx, *, arg):
 
     reason, member, memberID = aux.getvars(bot, ctx, arg)
     if not(member):
-        await ctx.channel.send("I cannot find this user. Please unban " + member.mention + " manually.")
+        await ctx.send("I cannot find this user. Please unban " + member.mention + " manually.")
         return
     embed,message = aux.modactions(ctx, reason, member, "unbanned")
     if embed:
@@ -138,7 +138,7 @@ async def unban(ctx, *, arg):
             await ctx.guild.unban(member,reason="​​​")
         else:
             await ctx.guild.unban(member,reason=reason + "​​​")
-        await ctx.channel.send(embed=embed)
+        await ctx.send(embed=embed)
         embed2,modlog = aux.modlogembed(bot,"unban", reason, ctx, 0x149414, member)
         await modlog.send(embed = embed2)
         try:
@@ -146,7 +146,7 @@ async def unban(ctx, *, arg):
         except:
             print(member.mention + " doesn't allow DMs. It's likely a bot.")
     else:
-        await ctx.channel.send("You cannot ban this user.")
+        await ctx.send("You cannot ban this user.")
 
 @bot.command()
 async def kick(ctx, *, arg):
@@ -155,12 +155,12 @@ async def kick(ctx, *, arg):
 
     reason, member, memberID = aux.getvars(bot, ctx, arg)
     if not(member):
-        await ctx.channel.send(member.mention + " is not a member of HEALTHcord.")
+        await ctx.send(member.mention + " is not a member of HEALTHcord.")
         return
     embed,message = aux.modactions(ctx, reason, member, "kicked")
     if embed:
         await member.kick()
-        await ctx.channel.send(embed=embed)
+        await ctx.send(embed=embed)
         embed2,modlog = aux.modlogembed(bot,"kick", reason, ctx, 0xffa500, member)
         await modlog.send(embed = embed2)
         try:
@@ -168,7 +168,7 @@ async def kick(ctx, *, arg):
         except:
             print(member.mention + " doesn't allow DMs. It's likely a bot.")
     else:
-        await ctx.channel.send("You cannot kick this user.")
+        await ctx.send("You cannot kick this user.")
 
 @bot.command()
 async def mute(ctx, *, arg):
@@ -178,7 +178,7 @@ async def mute(ctx, *, arg):
     reason, member, memberID = aux.getvars(bot, ctx, arg)
 
     if not(member):
-        await ctx.channel.send(member.mention + " is not a member of HEALTHcord.")
+        await ctx.send(member.mention + " is not a member of HEALTHcord.")
         return
 
     seconds = ""
@@ -199,7 +199,7 @@ async def mute(ctx, *, arg):
     muted = ctx.guild.get_role(config['MUTED_ROLE_ID'])
     if embed:
         await member.add_roles(muted,reason="Muted", atomic=True)
-        await ctx.channel.send(embed=embed)
+        await ctx.send(embed=embed)
         embed2,modlog = aux.modlogembed(bot,"mute", reason, ctx, 0xfffcbb, member)
         await modlog.send(embed = embed2)
         try:
@@ -212,7 +212,7 @@ async def mute(ctx, *, arg):
             embed2,modlog = aux.modlogembed(bot,"unmute", "Timed unmute", ctx, 0x149414, member)
             await modlog.send(embed = embed2)
     else:
-        await ctx.channel.send("You cannot mute this user.")
+        await ctx.send("You cannot mute this user.")
 
 @bot.command()
 async def unmute(ctx, *, arg):
@@ -221,13 +221,13 @@ async def unmute(ctx, *, arg):
 
     reason, member, memberID = aux.getvars(bot, ctx, arg)
     if not(member):
-        await ctx.channel.send(member.mention + " is not a member of HEALTHcord.")
+        await ctx.send(member.mention + " is not a member of HEALTHcord.")
         return
     embed,message = aux.modactions(ctx, reason, member, "unmuted")
     muted = ctx.guild.get_role(config['MUTED_ROLE_ID'])
     if embed:
         await member.remove_roles(muted, reason="Unmuted", atomic=True)
-        await ctx.channel.send(embed=embed)
+        await ctx.send(embed=embed)
         embed2,modlog = aux.modlogembed(bot,"unmute", reason, ctx, 0x149414, member)
         await modlog.send(embed = embed2)
         try:
@@ -235,14 +235,14 @@ async def unmute(ctx, *, arg):
         except:
             print(member.mention + " doesn't allow DMs. It's likely a bot.")
     else:
-        await ctx.channel.send("You cannot unmute this user.")
+        await ctx.send("You cannot unmute this user.")
 
 @bot.command()
 async def spam(ctx, *, arg):
     if not(aux.checkmod(ctx)):
         return
     for x in range(int(arg)):
-        await ctx.channel.send("spam")
+        await ctx.send("spam")
 
 @bot.command()
 async def purge(ctx, *, arg):
@@ -291,7 +291,7 @@ async def motd(ctx, *, arg):    # setting someone as the member of the day
     emojis = [697621015337107466,737315507509657661,697879872391086113,697880868743544903,753291933950017627,753291934008606762,804113756622684220,709794793051390153]
     emoji = bot.get_emoji(random.choice(emojis))
     await member.add_roles(motd,reason="Member of the day", atomic=True)
-    message = await ctx.channel.send(member.mention + " is member of the day!")
+    message = await ctx.send(member.mention + " is member of the day!")
     await message.add_reaction(emoji)
     await asyncio.sleep(86400)
     await member.remove_roles(motd,reason="End of the member of the day", atomic=True)
@@ -307,7 +307,7 @@ async def createtrigger(ctx, *, arg):
     mycursor = healthbot.cursor()
     mycursor.execute(sql, val)
     healthbot.commit()
-    await ctx.channel.send("Trigger created successfully.")'''
+    await ctx.send("Trigger created successfully.")'''
     left = False
     for x in range(len(arg)):
         if arg[x] == " ":
@@ -315,7 +315,7 @@ async def createtrigger(ctx, *, arg):
             right = arg[x+1:]
             break
     if not(left):
-        await ctx.channel.send("Invalid trigger.")
+        await ctx.send("Invalid trigger.")
 
 @bot.command()
 async def deletetrigger(ctx, *, arg):
@@ -326,7 +326,7 @@ async def deletetrigger(ctx, *, arg):
     sql = "DELETE FROM `Trigger` WHERE name = '" + arg + "'"
     mycursor.execute(sql)
     healthbot.commit()
-    await ctx.channel.send("Trigger deleted successfully.")'''
+    await ctx.send("Trigger deleted successfully.")'''
 
 @bot.command()
 async def timeout(ctx, *, arg):
@@ -338,7 +338,7 @@ async def timeout(ctx, *, arg):
     embed=discord.Embed(title=" ", color=0xff0000)
     embed.set_author(name="Enjoy your timeout. (" + timestr + ")")
     await ctx.author.add_roles(muted,reason="Self-requested timeout", atomic=True)
-    await ctx.channel.send(embed=embed)
+    await ctx.send(embed=embed)
     await asyncio.sleep(secondsint)
     await ctx.author.remove_roles(muted, reason="Timout ended", atomic=True)
     await ctx.author.send("Your timeout in HEALTHcord has ended.")
@@ -350,73 +350,7 @@ async def riff(ctx):
     embed=discord.Embed(title=" ", description="https://open.spotify.com/playlist/4rjHTKoc6UW6vZ3OtsRskC?si=OusEsIvdQPaHLnY2ae1bjw \n\nhttps://music.apple.com/us/playlist/tricils-riff-of-the-week/pl.u-GgAxqabhZxeVBG", color=0xff0000)
     embed.set_author(name="TRICIL'S RIFF OF THE WEEK PLAYLISTS! UPDATED EVERY WEDNESDAY!")
     embed.set_thumbnail(url="https://cdn.discordapp.com/emojis/732593127352696942.png")
-    await ctx.channel.send(embed=embed)
-
-
-
-def album(m,mentions):
-    albuml = []
-    m = "".join(m.lower().split()) # remove spaces, all lowercase, makes it easier for search
-
-    health = (["heaven", "girlattorney", "triceratops", "crimewave", "courtship", "zoothorns", "tabloidsores", "glitterpills", "perfectskin", "losttime","//m\\\\"],755047461734580306)
-    getcolor = (["getcolor", "inheat","dieslow","nicegirls","death+","beforetigers","severin","eatflesh","wearewater","inviolet"],755047462640681030)
-    deathmagic = (["deathmagic","victim","stonefist","mentoday","fleshworld","courtshipii","darkenough","salvia","newcoke","lalooks","l.a.looks","hurtyourself","drugsexist"],755047460019372062)
-    vol4 = (["vol4","vol.4","psychonaut","feelnothing","godbotherer","blackstatic","lossdeluxe","nc-17","nc17","themessage","ratwars","strangedays","wrongbag","slavesoffear","decimation"],755047461944557618)
-    disco4 = (["disco4","cyberpunk2020","cyberpunk2.0.0.0","cyberpunk2.0.0.0.","body/prison","bodyprison","powerfantasy","judgmentnight","innocence","fullofhealth","colors","hateyou","dflooks","d.f.looks","massgrave","deliciousape","hardtobeagod"],755050227215630426)
-    disco3 = (["disco3","euphoria","slumlord","crusher"],755050414008696852)
-    disco2 = (["disco2","usaboys","u.s.a.boys"],755050225751556117)
-    mp3 = (["tears"],755047462896533605)
-    payne = (["pain", "<:max:697638034937479239>"],697638034937479239)
-    powercaco = (["powerfantasy"],766716666540326932)
-    disco4plus = (["disco4+","disco4plus"],827609782176972801)
-    #ping = (["774402228084670515"],788902728658452481)
-
-    cacoheart = ([("good","love","based","thank","great","amazing","well"),("bad","racist","racism","cringe","dumb","idiot","stupid","bug","n'twork","notwork","suck","shit","poo","bitch")],804113756622684220,[697627002202750976,708429172737048606,735209358379450471,736196814654668830,"notfunny"])
-    
-    albums = [health,getcolor,deathmagic,vol4,disco2,disco3,mp3,payne,powercaco]
-
-    if "disco4+" not in m or "disco4plus" not in m:
-        for x in disco4:
-            if x in m:
-                albuml.append(x[1])
-                break
-    else:
-        albuml.append(disco4plus[1])
-
-    for x in albums:
-        for y in x[0]:
-            if y in m:
-                albuml.append(x[1])
-                break
-
-    if "bot" in m:
-        flag = True
-        for x in cacoheart[0][0]:
-            if x in m:
-                albuml.append(cacoheart[1])
-                flag = False
-                break
-        if flag:
-            for x in cacoheart[0][1]:
-                if x in m:
-                    emojiID = random.choice(cacoheart[2])
-                    if emojiID == "notfunny":
-                        albuml.append(733376041816424489)
-                        albuml.append(733376041686532127)
-                        break
-                    else:
-                        albuml.append(emojiID)
-                        break
-
-    for x in mentions:
-        if x.id == 774402228084670515:
-            albuml.append(788902728658452481)
-            break
-
-
-    return albuml
-
-
+    await ctx.send(embed=embed)
 
 @bot.event
 async def on_message(message):
@@ -440,12 +374,9 @@ async def on_message(message):
             print(message.content + " is an invalid command.")
         return
 
-    if message.author.id == 225522547154747392: #replacing the stock bot messages with HEALTH BOT messages
-        embedc=discord.Embed(title= "STOCKS", description= message.embeds[0].description, color=0xff0000)
-        embedc.set_footer(text= message.embeds[0].footer.text)
-        embedc.add_field(name="​", value="[Command Help](https://stockbot.us/c/?m=1&g=1#statistics)", inline=False)
-        await message.channel.send(embed= embedc)
-        await message.delete()
+    if message.channel.id == config['WHOLESOME_MEMES_ID'] or message.channel.id == config['ART_SHARE_ID']:
+        if message.content and not(aux.check_url(message.content)):
+            await message.delete()
 
     if message.content.lower() in ["musik make love to " + bot.user.mention,"musik make love to health bot","musik make love to health :: bot"]:
         await asyncio.sleep(1)
@@ -454,14 +385,11 @@ async def on_message(message):
 
 
     if message.channel.id != 707011962898481254: #we dont want this on #on-the-real certainly
-        emojialbum = album(message.content,message.mentions) #finding if there is a mention to a HEALTH album in a message and reacting with the album cover
+        emojialbum = aux.album(message.content,message.mentions) #finding if there is a mention to a HEALTH album in a message and reacting with the album cover
         if emojialbum:
             for x in emojialbum:
                 emoji = bot.get_emoji(x)
                 await message.add_reaction(emoji)
-
-    #if message.content == "health joao qwerty":
-    #    await message.channel.send("nothing to test")
 
 
 ## MISC EVENTS ##
@@ -476,6 +404,10 @@ async def on_message_edit(before,after):
         embed=discord.Embed(title="Message edited in #" + before.channel.name, description= "**Before:** " + before.content + "\n**After:** " + after.content,color=0x45b6fe)
         embed.set_author(name=userstr, icon_url=avatarurl)
         await bot.get_channel(config['BIG_BROTHER_ID']).send(embed= embed)
+
+    if after.channel.id == config['WHOLESOME_MEMES_ID'] or after.channel.id == config['ART_SHARE_ID']:
+        if after.content and not(aux.check_url(after.content)):
+            await after.delete()
 
 @bot.event
 async def on_message_delete(message):

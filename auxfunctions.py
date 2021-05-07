@@ -1,5 +1,7 @@
 import discord
+import random
 from dotenv import dotenv_values
+from urllib.parse import urlparse
 
 config = dotenv_values('.env')
 
@@ -85,3 +87,72 @@ def timestrbuilder(seconds, secondsint, suffix):
             suffix += " years"
         secondsint *= 60 * 60 * 24 * 365
     return suffix,secondsint
+
+def album(m,mentions):
+    albuml = []
+    m = "".join(m.lower().split()) # remove spaces, all lowercase, makes it easier for search
+
+    health = (["heaven", "girlattorney", "triceratops", "crimewave", "courtship", "zoothorns", "tabloidsores", "glitterpills", "perfectskin", "losttime","//m\\\\"],755047461734580306)
+    getcolor = (["getcolor", "inheat","dieslow","nicegirls","death+","beforetigers","severin","eatflesh","wearewater","inviolet"],755047462640681030)
+    deathmagic = (["deathmagic","victim","stonefist","mentoday","fleshworld","courtshipii","darkenough","salvia","newcoke","lalooks","l.a.looks","hurtyourself","drugsexist"],755047460019372062)
+    vol4 = (["vol4","vol.4","psychonaut","feelnothing","godbotherer","blackstatic","lossdeluxe","nc-17","nc17","themessage","ratwars","strangedays","wrongbag","slavesoffear","decimation"],755047461944557618)
+    disco4 = (["disco4","cyberpunk2020","cyberpunk2.0.0.0","cyberpunk2.0.0.0.","body/prison","bodyprison","powerfantasy","judgmentnight","innocence","fullofhealth","colors","hateyou","dflooks","d.f.looks","massgrave","deliciousape","hardtobeagod"],755050227215630426)
+    disco3 = (["disco3","euphoria","slumlord","crusher"],755050414008696852)
+    disco2 = (["disco2","usaboys","u.s.a.boys"],755050225751556117)
+    mp3 = (["tears"],755047462896533605)
+    payne = (["pain", "<:max:697638034937479239>"],697638034937479239)
+    powercaco = (["powerfantasy"],766716666540326932)
+    disco4plus = (["disco4+","disco4plus"],827609782176972801)
+    #ping = (["774402228084670515"],788902728658452481)
+
+    cacoheart = ([("good","love","based","thank","great","amazing","well"),("bad","racist","racism","cringe","dumb","idiot","stupid","bug","n'twork","notwork","suck","shit","poo","bitch")],804113756622684220,[697627002202750976,708429172737048606,735209358379450471,736196814654668830,"notfunny"])
+    
+    albums = [health,getcolor,deathmagic,vol4,disco2,disco3,mp3,payne,powercaco]
+
+    if "disco4+" not in m or "disco4plus" not in m:
+        for x in disco4:
+            if x in m:
+                albuml.append(x[1])
+                break
+    else:
+        albuml.append(disco4plus[1])
+
+    for x in albums:
+        for y in x[0]:
+            if y in m:
+                albuml.append(x[1])
+                break
+
+    if "bot" in m:
+        flag = True
+        for x in cacoheart[0][0]:
+            if x in m:
+                albuml.append(cacoheart[1])
+                flag = False
+                break
+        if flag:
+            for x in cacoheart[0][1]:
+                if x in m:
+                    emojiID = random.choice(cacoheart[2])
+                    if emojiID == "notfunny":
+                        albuml.append(733376041816424489)
+                        albuml.append(733376041686532127)
+                        break
+                    else:
+                        albuml.append(emojiID)
+                        break
+
+    for x in mentions:
+        if x.id == 774402228084670515:
+            albuml.append(788902728658452481)
+            break
+
+
+    return albuml
+
+def check_url(message):
+    try:
+        result = urlparse(message)
+        return all([result.scheme, result.netloc, result.path])
+    except:
+        return False
