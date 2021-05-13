@@ -296,6 +296,42 @@ async def motd(ctx, *, arg):    # setting someone as the member of the day
     await asyncio.sleep(86400)
     await member.remove_roles(motd,reason="End of the member of the day", atomic=True)
 
+@bot.command()
+async def roledump(ctx, *, arg):
+    if not(aux.checkmod(ctx)):
+        return
+    role_id, role_name = False, False
+    try:
+        role_id = int(arg)
+    except:
+        role_name = arg
+    
+    if role_id:
+        role = ctx.guild.get_role(role_id)
+        if not(role):
+            await ctx.reply("Invalid role ID provided.")
+            return
+    else:
+        role = discord.utils.get(ctx.guild.roles, name=role_name)
+        if not(role):
+            await ctx.reply("Invalid role name provided.")
+            return
+    
+    memberlist = ""
+    healthcord = bot.get_guild(688206199992483851)
+    embed = discord.Embed()
+    i = 1
+    j = 0
+    for member in healthcord.members:
+        if i == 40:
+            j += 1
+            embed.add_field(name="Part " + str(j), value=memberlist, inline=False)
+            clublist = ""
+            i = 1
+        if role in member.roles:
+            i+=1
+            clublist += member.name + "#" + member.discriminator + "\n"
+    await ctx.send(embed= embed)
 
 @bot.command()
 async def createtrigger(ctx, *, arg):
