@@ -296,6 +296,42 @@ async def motd(ctx, *, arg):    # setting someone as the member of the day
     await asyncio.sleep(86400)
     await member.remove_roles(motd,reason="End of the member of the day", atomic=True)
 
+@bot.command()
+async def roledump(ctx, *, arg):
+    if not(aux.checkmod(ctx)):
+        return
+    role_id, role_name = False, False
+    try:
+        role_id = int(arg)
+    except:
+        role_name = arg
+    
+    if role_id:
+        role = ctx.guild.get_role(role_id)
+        if not(role):
+            await ctx.reply("Invalid role ID provided.")
+            return
+    else:
+        role = discord.utils.get(ctx.guild.roles, name=role_name)
+        if not(role):
+            await ctx.reply("Invalid role name provided.")
+            return
+    
+    memberlist = ""
+    healthcord = bot.get_guild(688206199992483851)
+    embed = discord.Embed()
+    i = 1
+    j = 0
+    for member in healthcord.members:
+        if i == 40:
+            j += 1
+            embed.add_field(name="Part " + str(j), value=memberlist, inline=False)
+            clublist = ""
+            i = 1
+        if role in member.roles:
+            i+=1
+            clublist += member.name + "#" + member.discriminator + "\n"
+    await ctx.send(embed= embed)
 
 @bot.command()
 async def createtrigger(ctx, *, arg):
@@ -400,7 +436,12 @@ async def on_message_edit(before,after):
         return
     if before.content != after.content:
         userstr = before.author.name + "#" + before.author.discriminator
-        avatarurl = "https://cdn.discordapp.com/avatars/" + str(before.author.id) + "/" + before.author.avatar + ".webp"
+
+        if before.author.avatar:
+            avatarurl = "https://cdn.discordapp.com/avatars/" + str(before.author.id) + "/" + before.author.avatar + ".webp"
+        else:
+            avatarurl = "https://cdn.discordapp.com/avatars/774402228084670515/5ef539d5f3e8d576c4854768727bc75a.png"
+
         embed=discord.Embed(title="Message edited in #" + before.channel.name, description= "**Before:** " + before.content + "\n**After:** " + after.content,color=0x45b6fe)
         embed.set_author(name=userstr, icon_url=avatarurl)
         await bot.get_channel(config['BIG_BROTHER_ID']).send(embed= embed)
@@ -411,10 +452,15 @@ async def on_message_edit(before,after):
 
 @bot.event
 async def on_message_delete(message):
-    if message.author.id in [372175794895585280,225522547154747392]: #its the haikubot and stock bot's ID, its kinda useless showing when these are deleted
+    if message.author.id in [372175794895585280,225522547154747392]: #its the haikubot and stock bot's ID, its useless showing when these are deleted
         return
     userstr = message.author.name + "#" + message.author.discriminator
-    avatarurl = "https://cdn.discordapp.com/avatars/" + str(message.author.id) + "/" + message.author.avatar + ".webp"
+    
+    if message.author.avatar:
+        avatarurl = "https://cdn.discordapp.com/avatars/" + str(message.author.id) + "/" + message.author.avatar + ".webp"
+    else:
+        avatarurl = "https://cdn.discordapp.com/avatars/774402228084670515/5ef539d5f3e8d576c4854768727bc75a.png"
+    
     if message.content:
         description = message.content
     else:
@@ -493,21 +539,50 @@ async def on_reaction_add(reaction, user):
         channelid = str(reaction.message.channel.id)
         messageid = str(reaction.message.id)
         messageurl = "https://discord.com/channels/" + serverid + "/" + channelid + "/" + messageid
-        avatarurl = "https://cdn.discordapp.com/avatars/" + str(reaction.message.author.id) + "/" + reaction.message.author.avatar + ".webp"
+        
+        if reaction.message.author.avatar:
+            avatarurl = "https://cdn.discordapp.com/avatars/" + str(reaction.message.author.id) + "/" + reaction.message.author.avatar + ".webp"
+        else:
+            avatarurl = "https://cdn.discordapp.com/avatars/774402228084670515/5ef539d5f3e8d576c4854768727bc75a.png"
 
         if reaction.message.embeds and reaction.message.author.id == 372175794895585280: # haiku bot ID
-            embed = discord.Embed(description=reaction.message.embeds[0].description, color=0xf05b72)
+            embed = discord.Embed(description=reaction.message.embeds[0].description, color=0xff0000)
             embed.set_author(name="Haiku by " + reaction.message.embeds[0].footer.text[2:])
         else:
-            embed = discord.Embed(description=reaction.message.content, color=0xf05b72)
+            embed = discord.Embed(description=reaction.message.content, color=0xff0000)
             embed.set_author(name=reaction.message.author.display_name, icon_url=avatarurl)
             
         if reaction.message.attachments:
             embed.set_image(url=reaction.message.attachments[0].url)
-        embed.add_field(name="Source", value="[Jump!](" + messageurl + ")", inline=False)
-        embed.set_footer(text=reaction.message.id)
         
-        await healthcurated.send(reaction.message.channel.mention, embed=embed)
+        embed.add_field(name=reaction.message.channel.name, value="[Jump to message!](" + messageurl + ")", inline=False)
+        
+        if reaction.message.reference:
+            replied_message = await reaction.message.channel.fectch_message(reaction.message.reference) # getting the message it's being replied to
+            
+            if replied_message.author.avatar:
+                replied_avatarurl = "https://cdn.discordapp.com/avatars/" + str(replied_message.author.id) + "/" + replied_message.author.avatar + ".webp"
+            else:
+                replied_avatarurl = "https://cdn.discordapp.com/avatars/774402228084670515/5ef539d5f3e8d576c4854768727bc75a.png"
+
+            embed.add_field(name="──────", value= "*This was a reply to:*")
+            embed.set_footer(text=replied_message.author.display_name + "\n" + replied_message.content, icon_url=replied_avatarurl)
+
+        else:
+            embed.set_footer(text=reaction.message.id)
+        
+        await healthcurated.send(embed=embed)
+
+@bot.event
+async def on_member_join(member):
+    if member.avatar:
+        avatarurl = "https://cdn.discordapp.com/avatars/" + str(member.id) + "/" + member.avatar + ".webp"
+    else:
+        avatarurl = "https://cdn.discordapp.com/avatars/774402228084670515/5ef539d5f3e8d576c4854768727bc75a.png"
+    memberstr = member.name + "#" + member.discriminator
+    embed = discord.Embed(title=" ", description="User ID: " + str(member.id), color=0xff0000)
+    embed.set_author(name= memberstr + " has joined the server.", icon_url= avatarurl)
+    await bot.get_channel(config['NEW_USERS_ID']).send(embed= embed)
 
 @bot.event
 async def on_member_remove(member):
@@ -538,6 +613,7 @@ async def on_member_remove(member):
             else:
                 timestrAux = str(timeonserver.days) + " days, "
                 timestr += timestrAux
+
     if timeonserver.seconds:
         if timeonserver.seconds / 60 >= 60:
             if timeonserver.seconds / 3600 < 2:
