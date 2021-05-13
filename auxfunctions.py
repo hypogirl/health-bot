@@ -6,8 +6,8 @@ from urllib.parse import urlparse
 config = dotenv_values('.env')
 
 def checkmod(ctx):
-    mod = ctx.guild.get_role(config['MOD_ROLE_ID'])
-    admin = ctx.guild.get_role(config['ADMIN_ROLE_ID'])
+    mod = ctx.guild.get_role(config["MOD_ROLE_ID"])
+    admin = ctx.guild.get_role(config["ADMIN_ROLE_ID"])
     return mod in ctx.author.roles or admin in ctx.author.roles
 
 def getvars(bot, ctx, arg): # gets the user,reason and member for the mod functions
@@ -25,7 +25,7 @@ def getvars(bot, ctx, arg): # gets the user,reason and member for the mod functi
     return reason, member, memberID 
 
 def modactions(ctx, reason, member, action): # writes the embed and dm for the mod functions
-    if ctx.author.top_role > member.top_role or ctx.author.id == config['OWNER_ID']:
+    if ctx.author.top_role > member.top_role or ctx.author.id == config["OWNER_ID"]:
         if member.avatar:
             avatarurl = "https://cdn.discordapp.com/avatars/" + str(member.id) + "/" + member.avatar + ".webp"
         else:

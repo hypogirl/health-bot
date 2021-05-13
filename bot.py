@@ -13,10 +13,10 @@ import time
 config = dotenv_values('.env')
 
 healthbot = mysql.connector.connect(
-  host=config['DB_HOST'],
-  user=config['DB_USERNAME'],
-  password=config['DB_PASSWORD'],
-  database=config['DB_NAME']
+  host=config["DB_HOST"],
+  user=config["DB_USERNAME"],
+  password=config["DB_PASSWORD"],
+  database=config["DB_NAME"]
 )
 
 intents = discord.Intents().all()
@@ -196,7 +196,7 @@ async def mute(ctx, *, arg):
         embed,message = aux.modactions(ctx, reason, member, "muted for " + timestr)
     else:
         embed,message = aux.modactions(ctx, reason, member, "muted")
-    muted = ctx.guild.get_role(config['MUTED_ROLE_ID'])
+    muted = ctx.guild.get_role(config["MUTED_ROLE_ID"])
     if embed:
         await member.add_roles(muted,reason="Muted", atomic=True)
         await ctx.send(embed=embed)
@@ -224,7 +224,7 @@ async def unmute(ctx, *, arg):
         await ctx.send(member.mention + " is not a member of HEALTHcord.")
         return
     embed,message = aux.modactions(ctx, reason, member, "unmuted")
-    muted = ctx.guild.get_role(config['MUTED_ROLE_ID'])
+    muted = ctx.guild.get_role(config["MUTED_ROLE_ID"])
     if embed:
         await member.remove_roles(muted, reason="Unmuted", atomic=True)
         await ctx.send(embed=embed)
@@ -267,7 +267,7 @@ async def purge(ctx, *, arg):
     for x in users:
         deletedstr += "**" + x[0].name + "#" + x[0].discriminator + ":** " + str(x[1]) + "\n"
 
-    modlog = bot.get_channel(config['MOD_LOG_ID'])
+    modlog = bot.get_channel(config["MOD_LOG_ID"])
     embed = discord.Embed(title=" ", description="Messages deleted:\n\n" + deletedstr, color=0xff0000)
     embed.set_author(name= str(len(deleted)) + " messages purged | #" + ctx.channel.name)
     await modlog.send(embed= embed)
@@ -277,7 +277,7 @@ async def motd(ctx, *, arg):    # setting someone as the member of the day
     if not(aux.checkmod(ctx)):
         return
 
-    motd = ctx.guild.get_role(config['MOTD_ROLE_ID'])
+    motd = ctx.guild.get_role(config["MOTD_ROLE_ID"])
     memberID = ""
 
     for x in range(len(arg)):
@@ -369,7 +369,7 @@ async def timeout(ctx, *, arg):
     seconds = arg
     suffix = seconds[:-1]
     secondsint = int(seconds[:-1])
-    muted = ctx.guild.get_role(config['MUTED_ROLE_ID'])
+    muted = ctx.guild.get_role(config["MUTED_ROLE_ID"])
     timestr,secondsint = aux.timestrbuilder(seconds,secondsint,suffix)
     embed=discord.Embed(title=" ", color=0xff0000)
     embed.set_author(name="Enjoy your timeout. (" + timestr + ")")
@@ -410,7 +410,7 @@ async def on_message(message):
             print(message.content + " is an invalid command.")
         return
 
-    if message.channel.id == config['WHOLESOME_MEMES_ID'] or message.channel.id == config['ART_SHARE_ID']:
+    if message.channel.id == config["WHOLESOME_MEMES_ID"] or message.channel.id == config["ART_SHARE_ID"]:
         if message.content and not(aux.check_url(message.content)):
             await message.delete()
 
@@ -444,9 +444,9 @@ async def on_message_edit(before,after):
 
         embed=discord.Embed(title="Message edited in #" + before.channel.name, description= "**Before:** " + before.content + "\n**After:** " + after.content,color=0x45b6fe)
         embed.set_author(name=userstr, icon_url=avatarurl)
-        await bot.get_channel(config['BIG_BROTHER_ID']).send(embed= embed)
+        await bot.get_channel(config["BIG_BROTHER_ID"]).send(embed= embed)
 
-    if after.channel.id == config['WHOLESOME_MEMES_ID'] or after.channel.id == config['ART_SHARE_ID']:
+    if after.channel.id == config["WHOLESOME_MEMES_ID"] or after.channel.id == config["ART_SHARE_ID"]:
         if after.content and not(aux.check_url(after.content)):
             await after.delete()
 
@@ -467,7 +467,7 @@ async def on_message_delete(message):
         description = "*[This message only contained attachements.]*"
     embed=discord.Embed(title="Message deleted in #" + message.channel.name, description= description,color=0xff0000)
     embed.set_author(name=userstr, icon_url=avatarurl)
-    await bot.get_channel(config['BIG_BROTHER_ID']).send(embed= embed)
+    await bot.get_channel(config["BIG_BROTHER_ID"]).send(embed= embed)
 
 @bot.event
 async def on_member_ban(guild,user):
@@ -476,7 +476,7 @@ async def on_member_ban(guild,user):
     if not(logs.reason):
         logs.reason = "No reason specified."
     if logs.user.id != bot.user.id:
-        modlog = bot.get_channel(config['MOD_LOG_ID'])
+        modlog = bot.get_channel(config["MOD_LOG_ID"])
         embed=discord.Embed(title= "manual ban", description= "**Offender:** " + user.mention + "\n**Reason:** " + logs.reason + "\n**Responsible moderator: **" + logs.user.mention,color= 0xff0000)
 
 
@@ -487,7 +487,7 @@ async def on_member_unban(guild, user):
     if not(logs.reason):
         logs.reason = "No reason specified."
     if logs.user.id != bot.user.id:
-        modlog = bot.get_channel(config['MOD_LOG_ID'])
+        modlog = bot.get_channel(config["MOD_LOG_ID"])
         embed = discord.Embed(title= "manual unban", description= "**Offender:** " + user.mention + "\n**Responsible moderator: **" + logs.user.mention, color= 0xff0000)
         await modlog.send(embed= embed)
 
@@ -497,7 +497,7 @@ invitemessage = {}
 @bot.event
 async def on_invite_create(invite):
     global invitemessage
-    modlog = bot.get_channel(config['MOD_LOG_ID'])
+    modlog = bot.get_channel(config["MOD_LOG_ID"])
     user = invite.inviter
     userstr = user.name + "#" + user.discriminator
     if invite.max_uses:
@@ -532,7 +532,7 @@ async def on_reaction_add(reaction, user):
         await reaction.message.edit(embed = embed)
         
     # curation    
-    healthcurated = bot.get_channel(config['CURATION_CHANNEL_ID'])
+    healthcurated = bot.get_channel(config["CURATION_CHANNEL_ID"])
 
     if reaction.count == 5 and reaction.emoji != str(reaction.emoji) and (reaction.emoji.name == "cacostar" or reaction.emoji.name == "russtar"):
         serverid = str(reaction.message.guild.id)
@@ -582,12 +582,12 @@ async def on_member_join(member):
     memberstr = member.name + "#" + member.discriminator
     embed = discord.Embed(title=" ", description="User ID: " + str(member.id), color=0xff0000)
     embed.set_author(name= memberstr + " has joined the server.", icon_url= avatarurl)
-    await bot.get_channel(config['NEW_USERS_ID']).send(embed= embed)
+    await bot.get_channel(config["NEW_USERS_ID"]).send(embed= embed)
 
 @bot.event
 async def on_member_remove(member):
     now = datetime.now()
-    modlog = bot.get_channel(config['MOD_LOG_ID'])
+    modlog = bot.get_channel(config["MOD_LOG_ID"])
     memberstr = member.name + "#" + member.discriminator
     timeonserver = now - member.joined_at
     logs = await member.guild.audit_logs(limit=1, action=discord.AuditLogAction.ban).flatten()
@@ -693,4 +693,4 @@ async def on_member_remove(member):
 
 
 
-bot.run(config['BOT_TOKEN'])
+bot.run(config["BOT_TOKEN"])
