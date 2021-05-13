@@ -102,20 +102,19 @@ def album(m,mentions):
     mp3 = (["tears"],755047462896533605)
     payne = (["pain", "<:max:697638034937479239>"],697638034937479239)
     powercaco = (["powerfantasy"],766716666540326932)
-    disco4plus = (["disco4+","disco4plus"],827609782176972801)
     #ping = (["774402228084670515"],788902728658452481)
 
     cacoheart = ([("good","love","based","thank","great","amazing","well"),("bad","racist","racism","cringe","dumb","idiot","stupid","bug","n'twork","notwork","suck","shit","poo","bitch")],804113756622684220,[697627002202750976,708429172737048606,735209358379450471,736196814654668830,"notfunny"])
     
     albums = [health,getcolor,deathmagic,vol4,disco2,disco3,mp3,payne,powercaco]
 
-    if "disco4+" not in m or "disco4plus" not in m:
+    if "disco4+" in m or "disco4plus" in m:
+        albuml.append(827609782176972801)
+    else:
         for x in disco4[0]:
             if x in m:
-                albuml.append(x[1])
+                albuml.append(disco4[1])
                 break
-    else:
-        albuml.append(disco4plus[1])
 
     for x in albums:
         for y in x[0]:
