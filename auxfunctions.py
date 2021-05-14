@@ -15,7 +15,7 @@ def getvars(bot, ctx, arg): # gets the user, reason and member for the mod funct
 
     for x in range(len(arg)):
         if arg[x].isnumeric():
-            memberID += arg[x]
+            member_id += arg[x]
         if arg[x] == ">" or arg[x] == " ":
             break
 
@@ -23,7 +23,7 @@ def getvars(bot, ctx, arg): # gets the user, reason and member for the mod funct
     reason = arg[x+2:]
     member = ctx.guild.get_member(member_id)
     
-    return reason, member, member_id 
+    return reason, member
 
 def modactions(ctx, reason, member, action): # writes the embed and dm for the mod functions
     if ctx.author.top_role > member.top_role or ctx.author.id == int(config['OWNER_ID']):

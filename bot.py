@@ -82,7 +82,7 @@ async def warn(ctx, *, arg):
     if not(aux.checkmod(ctx)):
         return
         
-    reason, member, member_id = aux.getvars(bot, ctx, arg)
+    reason, member = aux.getvars(bot, ctx, arg)
     if not(member):
         await ctx.send(member.mention + " is not a member of HEALTHcord.")
         return
@@ -103,7 +103,7 @@ async def ban(ctx, *, arg):
     if not(aux.checkmod(ctx)):
         return
 
-    reason, member, member_id = aux.getvars(bot, ctx, arg)
+    reason, member = aux.getvars(bot, ctx, arg)
     if not(member):
         await ctx.send(member.mention + " is not a member of HEALTHcord.")
         return
@@ -128,7 +128,7 @@ async def unban(ctx, *, arg):
     if not(aux.checkmod(ctx)):
         return
 
-    reason, member, member_id = aux.getvars(bot, ctx, arg)
+    reason, member = aux.getvars(bot, ctx, arg)
     if not(member):
         await ctx.send("I cannot find this user. Please unban " + member.mention + " manually.")
         return
@@ -153,7 +153,7 @@ async def kick(ctx, *, arg):
     if not(aux.checkmod(ctx)):
         return
 
-    reason, member, member_id = aux.getvars(bot, ctx, arg)
+    reason, member = aux.getvars(bot, ctx, arg)
     if not(member):
         await ctx.send(member.mention + " is not a member of HEALTHcord.")
         return
@@ -175,7 +175,7 @@ async def mute(ctx, *, arg):
     if not(aux.checkmod(ctx)):
         return
 
-    reason, member, member_id = aux.getvars(bot, ctx, arg)
+    reason, member = aux.getvars(bot, ctx, arg)
 
     if not(member):
         await ctx.send(member.mention + " is not a member of HEALTHcord.")
@@ -219,7 +219,7 @@ async def unmute(ctx, *, arg):
     if not(aux.checkmod(ctx)):
         return
 
-    reason, member, member_id = aux.getvars(bot, ctx, arg)
+    reason, member = aux.getvars(bot, ctx, arg)
     if not(member):
         await ctx.send(member.mention + " is not a member of HEALTHcord.")
         return
@@ -278,8 +278,8 @@ async def motd(ctx, *, arg):    # setting someone as the member of the day
         return
 
     motd = ctx.guild.get_role(int(config['MOTD_ROLE_ID']))
-    reason, member, member_id= aux.getvars(bot, ctx, arg)
-    
+    reason, member = aux.getvars(bot, ctx, arg)
+
     emojis = [697621015337107466,737315507509657661,697879872391086113,697880868743544903,753291933950017627,753291934008606762,804113756622684220,709794793051390153]
     emoji = bot.get_emoji(random.choice(emojis))
     await member.add_roles(motd,reason="Member of the day", atomic=True)
