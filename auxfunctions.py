@@ -109,7 +109,7 @@ def album(m,mentions):
     
     albums = [health,getcolor,deathmagic,vol4,disco2,disco3,mp3,payne,powercaco]
 
-    if "disco4+" not in m or "disco4plus" not in m:
+    if "disco4+" in m or "disco4plus" in m:
         albuml.append(827609782176972801)
     else:
         for x in disco4[0]:
