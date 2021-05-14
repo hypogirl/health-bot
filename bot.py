@@ -311,7 +311,8 @@ async def roledump(ctx, *, arg):
     embed = discord.Embed(title="ROLE DUMP",description=role.name)
     i = 1
     j = 0
-    for member in ctx.guild.members:if i == 40:
+    for member in ctx.guild.members:
+        if i == 40:
             j += 1
             embed.add_field(name="Part " + str(j), value=memberlist, inline=False)
             memberlist = ""
