@@ -13,10 +13,10 @@ import time
 config = dotenv_values('.env')
 
 healthbot = mysql.connector.connect(
-  host(config['DB_HOST']),
-  user(config['DB_USERNAME']),
-  password(config['DB_PASSWORD']),
-  database(config['DB_NAME'])
+  host=config['DB_HOST'],
+  user=config['DB_USERNAME'],
+  password=config['DB_PASSWORD'],
+  database=config['DB_NAME']
 )
 
 intents = discord.Intents().all()
@@ -326,11 +326,11 @@ async def roledump(ctx, *, arg):
         if i == 40:
             j += 1
             embed.add_field(name="Part " + str(j), value=memberlist, inline=False)
-            clublist = ""
+            memberlist = ""
             i = 1
         if role in member.roles:
             i+=1
-            clublist += member.name + "#" + member.discriminator + "\n"
+            memberlist += member.name + "#" + member.discriminator + "\n"
     await ctx.send(embed= embed)
 
 @bot.command()
