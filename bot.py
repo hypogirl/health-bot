@@ -550,7 +550,7 @@ async def on_reaction_add(reaction, user):
         embed.add_field(name="#" + reaction.message.channel.name, value="[Jump to message!](" + messageurl + ")", inline=False)
         
         if reaction.message.reference:
-            replied_message = await reaction.message.channel.fetch_message(reaction.message.reference) # getting the message it's being replied to
+            replied_message = await reaction.message.channel.fetch_message(reaction.message.reference.message_id) # getting the message it's being replied to
             
             if replied_message.author.avatar:
                 replied_avatarurl = "https://cdn.discordapp.com/avatars/" + str(replied_message.author.id) + "/" + replied_message.author.avatar + ".webp"
