@@ -10,8 +10,8 @@ def checkmod(ctx):
     admin = ctx.guild.get_role(int(config['ADMIN_ROLE_ID']))
     return mod in ctx.author.roles or admin in ctx.author.roles
 
-def getvars(bot, ctx, arg): # gets the user,reason and member for the mod functions
-    memberID = ""
+def getvars(bot, ctx, arg): # gets the user, reason and member for the mod functions
+    member_id = ""
 
     for x in range(len(arg)):
         if arg[x].isnumeric():
@@ -19,10 +19,11 @@ def getvars(bot, ctx, arg): # gets the user,reason and member for the mod functi
         if arg[x] == ">" or arg[x] == " ":
             break
 
+    member_id = int(member_id)
     reason = arg[x+2:]
-    member = ctx.guild.get_member(memberID)
+    member = ctx.guild.get_member(member_id)
     
-    return reason, member, memberID 
+    return reason, member, member_id 
 
 def modactions(ctx, reason, member, action): # writes the embed and dm for the mod functions
     if ctx.author.top_role > member.top_role or ctx.author.id == int(config['OWNER_ID']):
