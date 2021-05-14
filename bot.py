@@ -290,8 +290,6 @@ async def motd(ctx, *, arg):    # setting someone as the member of the day
 
 @bot.command()
 async def roledump(ctx, *, arg):
-    if not(aux.checkmod(ctx)):
-        return
     role_id, role_name = False, False
     try:
         role_id = int(arg)
@@ -310,18 +308,20 @@ async def roledump(ctx, *, arg):
             return
     
     memberlist = ""
-    embed = discord.Embed()
+    embed = discord.Embed(title="ROLE DUMP",description=role.name)
     i = 1
     j = 0
-    for member in ctx.guild.members:
-        if i == 40:
+    for member in ctx.guild.members:if i == 40:
             j += 1
             embed.add_field(name="Part " + str(j), value=memberlist, inline=False)
             memberlist = ""
             i = 1
         if role in member.roles:
-            i+=1
+            i += 1
             memberlist += member.name + "#" + member.discriminator + "\n"
+    if memberlist:
+        j += 1
+        embed.add_field(name="Part " + str(j), value=memberlist, inline=False)
     await ctx.send(embed= embed)
 
 @bot.command()
