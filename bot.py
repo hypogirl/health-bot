@@ -310,11 +310,10 @@ async def roledump(ctx, *, arg):
             return
     
     memberlist = ""
-    healthcord = bot.get_guild(688206199992483851)
     embed = discord.Embed()
     i = 1
     j = 0
-    for member in healthcord.members:
+    for member in ctx.guild.members:
         if i == 40:
             j += 1
             embed.add_field(name="Part " + str(j), value=memberlist, inline=False)
