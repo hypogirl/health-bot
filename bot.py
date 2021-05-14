@@ -582,11 +582,11 @@ async def on_member_remove(member):
     modlog = bot.get_channel(int(config['MOD_LOG_ID']))
     memberstr = member.name + "#" + member.discriminator
     timeonserver = now - member.joined_at
-    logs = await member.guild.audit_logs(limit=1, action=discord.AuditLogAction.ban).flatten()
+    logs = await member.guild.audit_logs(limit=1, action=discord.AuditLogAction.kick).flatten()
     logs = logs[0]
     if not(logs.reason):
         logs.reason = "No reason specified."
-    if logs.user.id != bot.user.id:
+    if logs.user.id != bot.user.id and logs.target.id == member.id:
         embed=discord.Embed(title= "manual kick", description= "**Offender:** " + member.mention + "\n**Reason:** " + logs.reason + "\n**Responsible moderator: **" + logs.user.mention,color= 0xff0000)
         await modlog.send(embed= embed)
 
