@@ -555,7 +555,7 @@ async def on_reaction_add(reaction, user):
         if reaction.message.attachments:
             embed.set_image(url=reaction.message.attachments[0].url)
         
-        embed.add_field(name=reaction.message.channel.name, value="[Jump to message!](" + messageurl + ")", inline=False)
+        embed.add_field(name="#" + reaction.message.channel.name, value="[Jump to message!](" + messageurl + ")", inline=False)
         
         if reaction.message.reference:
             replied_message = await reaction.message.channel.fectch_message(reaction.message.reference) # getting the message it's being replied to
