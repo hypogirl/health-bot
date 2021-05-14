@@ -6,26 +6,27 @@ from urllib.parse import urlparse
 config = dotenv_values('.env')
 
 def checkmod(ctx):
-    mod = ctx.guild.get_role(config['MOD_ROLE_ID'])
-    admin = ctx.guild.get_role(config['ADMIN_ROLE_ID'])
+    mod = ctx.guild.get_role(int(config['MOD_ROLE_ID']))
+    admin = ctx.guild.get_role(int(config['ADMIN_ROLE_ID']))
     return mod in ctx.author.roles or admin in ctx.author.roles
 
-def getvars(bot, ctx, arg): # gets the user,reason and member for the mod functions
-    memberID = ""
+def getvars(bot, ctx, arg): # gets the user, reason and member for the mod functions
+    member_id = ""
 
     for x in range(len(arg)):
         if arg[x].isnumeric():
-            memberID += arg[x]
+            member_id += arg[x]
         if arg[x] == ">" or arg[x] == " ":
             break
 
+    member_id = int(member_id)
     reason = arg[x+2:]
-    member = ctx.guild.get_member(memberID)
+    member = ctx.guild.get_member(member_id)
     
-    return reason, member, memberID 
+    return reason, member
 
 def modactions(ctx, reason, member, action): # writes the embed and dm for the mod functions
-    if ctx.author.top_role > member.top_role or ctx.author.id == config['OWNER_ID']:
+    if ctx.author.top_role > member.top_role or ctx.author.id == int(config['OWNER_ID']):
         if member.avatar:
             avatarurl = "https://cdn.discordapp.com/avatars/" + str(member.id) + "/" + member.avatar + ".webp"
         else:
@@ -102,7 +103,6 @@ def album(m,mentions):
     mp3 = (["tears"],755047462896533605)
     payne = (["pain", "<:max:697638034937479239>"],697638034937479239)
     powercaco = (["powerfantasy"],766716666540326932)
-    disco4plus = (["disco4+","disco4plus"],827609782176972801)
     #ping = (["774402228084670515"],788902728658452481)
 
     cacoheart = ([("good","love","based","thank","great","amazing","well"),("bad","racist","racism","cringe","dumb","idiot","stupid","bug","n'twork","notwork","suck","shit","poo","bitch")],804113756622684220,[697627002202750976,708429172737048606,735209358379450471,736196814654668830,"notfunny"])
@@ -110,12 +110,12 @@ def album(m,mentions):
     albums = [health,getcolor,deathmagic,vol4,disco2,disco3,mp3,payne,powercaco]
 
     if "disco4+" not in m or "disco4plus" not in m:
+        albuml.append(827609782176972801)
+    else:
         for x in disco4[0]:
             if x in m:
-                albuml.append(x[1])
+                albuml.append(disco4[1])
                 break
-    else:
-        albuml.append(disco4plus[1])
 
     for x in albums:
         for y in x[0]:

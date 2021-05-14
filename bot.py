@@ -13,10 +13,10 @@ import time
 config = dotenv_values('.env')
 
 healthbot = mysql.connector.connect(
-  host(config['DB_HOST']),
-  user(config['DB_USERNAME']),
-  password(config['DB_PASSWORD']),
-  database(config['DB_NAME'])
+  host=config['DB_HOST'],
+  user=config['DB_USERNAME'],
+  password=config['DB_PASSWORD'],
+  database=config['DB_NAME']
 )
 
 intents = discord.Intents().all()
@@ -82,7 +82,7 @@ async def warn(ctx, *, arg):
     if not(aux.checkmod(ctx)):
         return
         
-    reason, member, memberID = aux.getvars(bot, ctx, arg)
+    reason, member = aux.getvars(bot, ctx, arg)
     if not(member):
         await ctx.send(member.mention + " is not a member of HEALTHcord.")
         return
@@ -103,7 +103,7 @@ async def ban(ctx, *, arg):
     if not(aux.checkmod(ctx)):
         return
 
-    reason, member, memberID = aux.getvars(bot, ctx, arg)
+    reason, member = aux.getvars(bot, ctx, arg)
     if not(member):
         await ctx.send(member.mention + " is not a member of HEALTHcord.")
         return
@@ -128,7 +128,7 @@ async def unban(ctx, *, arg):
     if not(aux.checkmod(ctx)):
         return
 
-    reason, member, memberID = aux.getvars(bot, ctx, arg)
+    reason, member = aux.getvars(bot, ctx, arg)
     if not(member):
         await ctx.send("I cannot find this user. Please unban " + member.mention + " manually.")
         return
@@ -153,7 +153,7 @@ async def kick(ctx, *, arg):
     if not(aux.checkmod(ctx)):
         return
 
-    reason, member, memberID = aux.getvars(bot, ctx, arg)
+    reason, member = aux.getvars(bot, ctx, arg)
     if not(member):
         await ctx.send(member.mention + " is not a member of HEALTHcord.")
         return
@@ -175,7 +175,7 @@ async def mute(ctx, *, arg):
     if not(aux.checkmod(ctx)):
         return
 
-    reason, member, memberID = aux.getvars(bot, ctx, arg)
+    reason, member = aux.getvars(bot, ctx, arg)
 
     if not(member):
         await ctx.send(member.mention + " is not a member of HEALTHcord.")
@@ -219,7 +219,7 @@ async def unmute(ctx, *, arg):
     if not(aux.checkmod(ctx)):
         return
 
-    reason, member, memberID = aux.getvars(bot, ctx, arg)
+    reason, member = aux.getvars(bot, ctx, arg)
     if not(member):
         await ctx.send(member.mention + " is not a member of HEALTHcord.")
         return
@@ -278,16 +278,8 @@ async def motd(ctx, *, arg):    # setting someone as the member of the day
         return
 
     motd = ctx.guild.get_role(int(config['MOTD_ROLE_ID']))
-    memberID = ""
+    reason, member = aux.getvars(bot, ctx, arg)
 
-    for x in range(len(arg)):
-        if arg[x].isnumeric():
-            memberID += arg[x]
-        if arg[x] == ">" or arg[x] == " ":
-            break
-
-    memberID = int(memberID)
-    member = ctx.guild.get_member(memberID)
     emojis = [697621015337107466,737315507509657661,697879872391086113,697880868743544903,753291933950017627,753291934008606762,804113756622684220,709794793051390153]
     emoji = bot.get_emoji(random.choice(emojis))
     await member.add_roles(motd,reason="Member of the day", atomic=True)
@@ -298,8 +290,6 @@ async def motd(ctx, *, arg):    # setting someone as the member of the day
 
 @bot.command()
 async def roledump(ctx, *, arg):
-    if not(aux.checkmod(ctx)):
-        return
     role_id, role_name = False, False
     try:
         role_id = int(arg)
@@ -318,19 +308,21 @@ async def roledump(ctx, *, arg):
             return
     
     memberlist = ""
-    healthcord = bot.get_guild(688206199992483851)
-    embed = discord.Embed()
+    embed = discord.Embed(title="ROLE DUMP",description=role.name)
     i = 1
     j = 0
-    for member in healthcord.members:
+    for member in ctx.guild.members:
         if i == 40:
             j += 1
             embed.add_field(name="Part " + str(j), value=memberlist, inline=False)
-            clublist = ""
+            memberlist = ""
             i = 1
         if role in member.roles:
-            i+=1
-            clublist += member.name + "#" + member.discriminator + "\n"
+            i += 1
+            memberlist += member.name + "#" + member.discriminator + "\n"
+    if memberlist:
+        j += 1
+        embed.add_field(name="Part " + str(j), value=memberlist, inline=False)
     await ctx.send(embed= embed)
 
 @bot.command()
@@ -555,10 +547,10 @@ async def on_reaction_add(reaction, user):
         if reaction.message.attachments:
             embed.set_image(url=reaction.message.attachments[0].url)
         
-        embed.add_field(name=reaction.message.channel.name, value="[Jump to message!](" + messageurl + ")", inline=False)
+        embed.add_field(name="#" + reaction.message.channel.name, value="[Jump to message!](" + messageurl + ")", inline=False)
         
         if reaction.message.reference:
-            replied_message = await reaction.message.channel.fectch_message(reaction.message.reference) # getting the message it's being replied to
+            replied_message = await reaction.message.channel.fetch_message(reaction.message.reference) # getting the message it's being replied to
             
             if replied_message.author.avatar:
                 replied_avatarurl = "https://cdn.discordapp.com/avatars/" + str(replied_message.author.id) + "/" + replied_message.author.avatar + ".webp"
