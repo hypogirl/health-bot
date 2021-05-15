@@ -403,7 +403,7 @@ async def on_message(message):
         return
 
     if message.channel.id == int(config['WHOLESOME_MEMES_ID']) or message.channel.id ==int (config['ART_SHARE_ID']):
-        if message.content and not(aux.check_url(message.content)):
+        if message.content and not(message.attachments) and not(aux.check_url(message.content)):
             await message.delete()
 
     if message.content.lower() in ["musik make love to " + bot.user.mention,"musik make love to health bot","musik make love to health :: bot"]:
@@ -438,8 +438,8 @@ async def on_message_edit(before,after):
         embed.set_author(name=userstr, icon_url=avatarurl)
         await bot.get_channel(int(config['BIG_BROTHER_ID'])).send(embed= embed)
 
-    if after.channel.id == int(config['WHOLESOME_MEMES_ID']) or after.channel.id == int(config['ART_SHARE_ID']):
-        if after.content and not(aux.check_url(after.content)):
+    if after.channel.id == int(config['WHOLESOME_MEMES_ID']) or after.channel.id ==int (config['ART_SHARE_ID']):
+        if after.content and not(after.attachments) and not(aux.check_url(after.content)):
             await after.delete()
 
 @bot.event

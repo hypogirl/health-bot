@@ -149,9 +149,12 @@ def album(m,mentions):
 
     return albuml
 
-def check_url(message):
+def check_url_aux(message):
     try:
         result = urlparse(message)
         return all([result.scheme, result.netloc, result.path])
     except:
         return False
+
+def check_url(message):
+    return check_url_aux(message) or check_url_aux(message + "/")
