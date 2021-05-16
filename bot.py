@@ -508,6 +508,8 @@ async def on_invite_create(invite):
     await message.add_reaction("❌")
     invitemessage[message] = invite
 
+last_curated_message_id = False
+
 @bot.event
 async def on_reaction_add(reaction, user):
     # mod-log invites
@@ -523,10 +525,10 @@ async def on_reaction_add(reaction, user):
         await invite.delete()
         await reaction.message.edit(embed = embed)
         
-    # curation    
+    # curation
+    global last_curated_message_id
     healthcurated = bot.get_channel(int(config['CURATION_CHANNEL_ID']))
-
-    if reaction.count == 5 and reaction.emoji != str(reaction.emoji) and (reaction.emoji.name == "cacostar" or reaction.emoji.name == "russtar"):
+    if reaction.message.id != last_curated_message_id and reaction.count == 5 and reaction.emoji != str(reaction.emoji) and (reaction.emoji.name == "cacostar" or reaction.emoji.name == "russtar"):
         serverid = str(reaction.message.guild.id)
         channelid = str(reaction.message.channel.id)
         messageid = str(reaction.message.id)
