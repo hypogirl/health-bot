@@ -514,7 +514,6 @@ last_curated_message_id = False
 async def on_reaction_add(reaction, user):
     # mod-log invites
     global invitemessage
-    global last_curated_message_id
     if reaction.message in invitemessage and reaction.emoji == "❌" and user != bot.user:
         invite = invitemessage[reaction.message]
         if invite.max_uses:
@@ -526,7 +525,8 @@ async def on_reaction_add(reaction, user):
         await invite.delete()
         await reaction.message.edit(embed = embed)
         
-    # curation    
+    # curation
+    global last_curated_message_id
     healthcurated = bot.get_channel(int(config['CURATION_CHANNEL_ID']))
 
     if reaction.message.id != last_curated_message_id and reaction.count == 5 and reaction.emoji != str(reaction.emoji) and (reaction.emoji.name == "cacostar" or reaction.emoji.name == "russtar"):
