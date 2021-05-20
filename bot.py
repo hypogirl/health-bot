@@ -685,17 +685,6 @@ async def on_member_remove(member):
     embed.set_author(name=memberstr, icon_url=avatarurl)
     await modlog.send(embed= embed)
 
-@bot.event
-async def on_member_update(before, after):
-    if after.id == 830204658370871306 and before.status != after.status:
-        embed = discord.Embed(color=0xff0000)
-        if after.status == discord.Status.online:
-            embed.set_author(name="A wild BEEJ appeared!")
-            await after.guild.get_channel(int(config['GENERAL_ID'])).send(embed= embed)
-        elif after.status == discord.Status.offline:
-            embed.set_author(name="BEEJ has fled.")
-            await after.guild.get_channel(int(config['GENERAL_ID'])).send(embed= embed)
-
 
 
 bot.run(config['BOT_TOKEN'])
