@@ -540,7 +540,8 @@ async def on_reaction_add(reaction, user):
             avatarurl = "https://cdn.discordapp.com/avatars/774402228084670515/5ef539d5f3e8d576c4854768727bc75a.png"
 
         if reaction.message.embeds and reaction.message.author.id == 372175794895585280: # haiku bot ID
-            embed = discord.Embed(description=reaction.message.embeds[0].description, color=0xff0000)
+            description = reaction.message.embeds[0].description.replace("\n\n","\n")
+            embed = discord.Embed(description=description, color=0xff0000)
             embed.set_author(name="Haiku by " + reaction.message.embeds[0].footer.text[2:])
         else:
             embed = discord.Embed(description=reaction.message.content, color=0xff0000)
