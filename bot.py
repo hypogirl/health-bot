@@ -295,6 +295,10 @@ async def backup(ctx):
     await ctx.send("Backup server created.\n" + invite.url)
 
 @bot.command()
+async def deletebackup(ctx):
+    await ctx.guild.delete()
+
+@bot.command()
 async def motd(ctx, *, arg):    # setting someone as the member of the day
     if not(aux.checkmod(ctx)):
         return
