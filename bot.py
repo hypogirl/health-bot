@@ -281,7 +281,7 @@ async def backup(ctx):
     else:
         now = str(datetime.now())
         now = now.split(' ')[0]
-        await ctx.guil.create_template("back up " + now)
+        await ctx.guild.create_template("back up " + now)
         templates = await ctx.guild.templates()
         template = templates[0]
     
