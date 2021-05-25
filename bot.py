@@ -598,32 +598,38 @@ async def on_reaction_add(reaction, user):
     global open_tickets
     global closed_tickets
     if user != bot.user:
-        if support_check(mod_support, reaction, user):
+        flag_mod = await support_check(mod_support, reaction, user)
+        flag_merch = await support_check(merch_support, reaction, user)
+        flag_roles = await support_check(roles_support, reaction, user)
+        if flag_mod:
             init_message = "Hello! " + user.mention + "\nWhat's the issue?\n\n``(React to this message with 🔒 to close this ticket.)``"
-            create_ticket_channel(init_message,"general-ticket",user)
-            return
-
-        elif support_check(merch_support, reaction, user):
+            await create_ticket_channel(init_message,"general-ticket",user)
+        elif flag_merch:
             init_message = "Hello! " + user.mention + "\nDo you have an issue with a merch order?\n" + user.guild.get_role(int(config['MERCH_SUPPORT_ID'])).mention +" will get back to you shortly.\n\n``(React to this message with 🔒 to close this ticket.)``"
-            create_ticket_channel(init_message,"merch-ticket",user)
-            return
-
-        elif support_check(mod_support, reaction, user):
+            await create_ticket_channel(init_message,"merch-ticket",user)
+        elif flag_roles:
             init_message = "Hello! " + user.mention + "\nAre you missing some roles?\n\n``(React to this message with 🔒 to close this ticket.)``"
-            create_ticket_channel(init_message,"roles-ticket",user)
-            return
+            await create_ticket_channel(init_message,"roles-ticket",user)
 
     if reaction.message.id in open_tickets and reaction.emoji == "🔒":
-        await reaction.message.channel.move(category=int(config['CLOSED_TICKET_CAT_ID']))
-        message = await reaction.message.channel.send("``React to this message with 🔓 to re-open this ticket.")
-        closed_tickets.append(message.id)
+        await reaction.remove(user)
+        closed_ticket_cat = user.guild.get_channel(int(config['CLOSED_TICKET_CAT_ID']))
+        await reaction.message.channel.move(category= closed_ticket_cat, end= True)
+        await reaction.message.channel.edit(name= "closed " + reaction.message.channel.name)
+        message = await reaction.message.channel.send("``React to this message with 🔓 to re-open this ticket.``")
         await message.add_reaction("🔓")
+        closed_tickets.append(message.id)
+        open_tickets.remove(reaction.message.id)
 
-    if reaction.message.id in closed_tickets and reaction.emoji == "🔓":
-        await reaction.message.channel.move(category=int(config['OPEN_TICKET_CAT_ID']))
-        message = await reaction.message.channel.send("``React to this message with 🔓 to close this ticket.")
-        closed_tickets.append(message.id)
-        await message.add_reaction("🔓")
+    elif reaction.message.id in closed_tickets and reaction.emoji == "🔓":
+        await reaction.remove(user)
+        open_ticket_cat = user.guild.get_channel(int(config['OPEN_TICKET_CAT_ID']))
+        await reaction.message.channel.move(category= open_ticket_cat, end= True)
+        await reaction.message.channel.edit(name= reaction.message.channel.name[7:])
+        message = await reaction.message.channel.send("``React to this message with 🔒 to close this ticket.``")
+        await message.add_reaction("🔒")
+        open_tickets.append(message.id)
+        closed_tickets.remove(reaction.message.id)
 
     # mod-log invites
     global invitemessage
