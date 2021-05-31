@@ -26,7 +26,7 @@ def getvars(bot, ctx, arg): # gets the user, reason and member for the mod funct
     return reason, member
 
 def modactions(ctx, reason, member, action): # writes the embed and dm for the mod functions
-    if ctx.author.top_role > member.top_role or ctx.author.id == int(config['OWNER_ID']):
+    if ctx.author.top_role > member.top_role or ctx.author == ctx.guild.owner:
         if member.avatar:
             avatarurl = "https://cdn.discordapp.com/avatars/" + str(member.id) + "/" + member.avatar + ".webp"
         else:
