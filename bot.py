@@ -601,18 +601,22 @@ async def on_reaction_add(reaction, user):
         flag_mod = await support_check(mod_support, reaction, user)
         flag_merch = await support_check(merch_support, reaction, user)
         flag_roles = await support_check(roles_support, reaction, user)
+        init_message = "Hello! " + user.mention
         if flag_mod:
-            init_message = "Hello! " + user.mention + "\nWhat's the issue?\n\n``(React to this message with 🔒 to close this ticket.)``"
+            init_message += "\nWhat's the issue?"
             await create_ticket_channel(init_message,"general-ticket",user)
         elif flag_merch:
-            init_message = "Hello! " + user.mention + "\nDo you have an issue with a merch order?\n" + user.guild.get_role(int(config['MERCH_SUPPORT_ID'])).mention +" will get back to you shortly.\n\n``(React to this message with 🔒 to close this ticket.)``"
+            init_message += "\nDo you have an issue with a merch order?\n" + user.guild.get_role(int(config['MERCH_SUPPORT_ID'])).mention +" will get back to you shortly."
             await create_ticket_channel(init_message,"merch-ticket",user)
         elif flag_roles:
-            init_message = "Hello! " + user.mention + "\nAre you missing some roles?\n\n``(React to this message with 🔒 to close this ticket.)``"
-            await create_ticket_channel(init_message,"roles-ticket",user)
+            init_message += "\nAre you missing some roles?"
+        else:
+            return
+        init_message += "\n\n``(React to this message with 🔒 to close this ticket.)``"
+        await create_ticket_channel(init_message,"roles-ticket",user)
 
     if str(reaction.message.id) in open_tickets and reaction.emoji == "🔒":
-        await reaction.remove(user)
+        await reaction.remove(user) 
         closed_ticket_cat = user.guild.get_channel(int(config['CLOSED_TICKET_CAT_ID']))
         await reaction.message.channel.move(category= closed_ticket_cat, end= True)
         overwrites = {user.guild.default_role: discord.PermissionOverwrite(read_messages=False), open_tickets[str(reaction.message.id)]: discord.PermissionOverwrite(read_messages=False)}
