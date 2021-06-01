@@ -273,6 +273,32 @@ async def purge(ctx, *, arg):
     await modlog.send(embed= embed)
 
 @bot.command()
+async def backup(ctx):
+    if not(aux.checkmod(ctx)):
+        return
+
+    now = str(datetime.now())
+    now = now.split(' ')[0]
+    templates = await ctx.guild.templates()
+    if templates:
+        template = templates[0]
+        await template.sync()
+    else:
+        await ctx.guild.create_template(name= "back up " + now)
+        templates = await ctx.guild.templates()
+        template = templates[0]
+    
+    backup_guild = await template.create_guild(name= "back up " + now)
+    await template.delete()
+    channel = await backup_guild.create_text_channel(name= "invite-link-channel")
+    invite = await channel.create_invite(max_uses=1)
+    await ctx.send("Backup server created.\n" + invite.url)
+
+@bot.command()
+async def deletebackup(ctx):
+    await ctx.guild.delete()
+
+@bot.command()
 async def motd(ctx, *, arg):    # setting someone as the member of the day
     if not(aux.checkmod(ctx)):
         return
