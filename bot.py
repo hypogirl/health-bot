@@ -441,7 +441,7 @@ async def timeout(ctx, *, arg):
 async def pin(ctx):
     flag = False
     club_channels = [config['MOVIE_CLUB_ID'],config['BOOK_CLUB_ID'],config['ANIME_CLUB_ID'],config['MUSIC_CLUB_ID'],config['ART_CLUB_ID'],config['GAMING_CLUB_ID'],config['FOOD_CLUB_ID']]
-    if ctx.channel.id in club_channels:
+    if str(ctx.channel.id) in club_channels:
         for role in ctx.author.roles:
             if role.name == "CLUB LEADER" or aux.checkmod(ctx):
                 flag = True
