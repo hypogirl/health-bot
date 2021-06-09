@@ -437,14 +437,22 @@ async def timeout(ctx, *, arg):
     await ctx.author.remove_roles(muted, reason="Timout ended", atomic=True)
     await ctx.author.send("Your timeout in HEALTHcord has ended.")
 
-
-## temporary commands (prob) ##
 @bot.command()
-async def riff(ctx):
-    embed=discord.Embed(title=" ", description="https://open.spotify.com/playlist/4rjHTKoc6UW6vZ3OtsRskC?si=OusEsIvdQPaHLnY2ae1bjw \n\nhttps://music.apple.com/us/playlist/tricils-riff-of-the-week/pl.u-GgAxqabhZxeVBG", color=0xff0000)
-    embed.set_author(name="TRICIL'S RIFF OF THE WEEK PLAYLISTS! UPDATED EVERY WEDNESDAY!")
-    embed.set_thumbnail(url="https://cdn.discordapp.com/emojis/732593127352696942.png")
-    await ctx.send(embed=embed)
+async def pin(ctx, *, arg):
+    flag = False
+    club_channels = [config['MOVIE_CLUB_ID'],config['BOOK_CLUB_ID'],config['ANIME_CLUB_ID'],config['MUSIC_CLUB_ID'],config['ART_CLUB_ID'],config['GAMING_CLUB_ID'],config['FOOD_CLUB_ID']]
+    if ctx.channel.id in club_channels:
+        for role in ctx.author.roles:
+            if role.name == "CLUB LEADER" or aux.checkmod(ctx):
+                flag = True
+                break
+    if flag:
+        if not(ctx.message.reference):
+            await ctx.reply("Reply to the message you want to pin.")
+        else:
+            message_to_pin = await ctx.channel.fetch_message(ctx.message.reference.message_id)
+            await message_to_pin.pin(reason="Pinned by " + ctx.author.name)
+            await ctx.message.delete()
 
 @bot.event
 async def on_message(message):

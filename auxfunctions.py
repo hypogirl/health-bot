@@ -8,7 +8,7 @@ config = dotenv_values('.env')
 def checkmod(ctx):
     mod = ctx.guild.get_role(int(config['MOD_ROLE_ID']))
     admin = ctx.guild.get_role(int(config['ADMIN_ROLE_ID']))
-    return mod in ctx.author.roles or admin in ctx.author.roles
+    return mod in ctx.author.roles or admin in ctx.author.roles or ctx.author.id == ctx.guild.owner.id
 
 def getvars(bot, ctx, arg): # gets the user, reason and member for the mod functions
     member_id = ""
@@ -26,7 +26,7 @@ def getvars(bot, ctx, arg): # gets the user, reason and member for the mod funct
     return reason, member
 
 def modactions(ctx, reason, member, action): # writes the embed and dm for the mod functions
-    if ctx.author.top_role > member.top_role or ctx.author == ctx.guild.owner:
+    if ctx.author.top_role > member.top_role or ctx.author.id == ctx.guild.owner.id:
         if member.avatar:
             avatarurl = "https://cdn.discordapp.com/avatars/" + str(member.id) + "/" + member.avatar + ".webp"
         else:
