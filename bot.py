@@ -12,12 +12,14 @@ import time
 
 config = dotenv_values('.env')
 
+'''
 healthbot = mysql.connector.connect(
   host=config['DB_HOST'],
   user=config['DB_USERNAME'],
   password=config['DB_PASSWORD'],
   database=config['DB_NAME']
 )
+'''
 
 intents = discord.Intents().all()
 bot = commands.Bot(command_prefix='!', intents=intents)
