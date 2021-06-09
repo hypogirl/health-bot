@@ -438,7 +438,7 @@ async def timeout(ctx, *, arg):
     await ctx.author.send("Your timeout in HEALTHcord has ended.")
 
 @bot.command()
-async def pin(ctx, *, arg):
+async def pin(ctx):
     flag = False
     club_channels = [config['MOVIE_CLUB_ID'],config['BOOK_CLUB_ID'],config['ANIME_CLUB_ID'],config['MUSIC_CLUB_ID'],config['ART_CLUB_ID'],config['GAMING_CLUB_ID'],config['FOOD_CLUB_ID']]
     if ctx.channel.id in club_channels:
