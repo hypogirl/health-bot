@@ -8,7 +8,7 @@ config = dotenv_values('.env')
 def checkmod(ctx):
     mod = ctx.guild.get_role(int(config['MOD_ROLE_ID']))
     admin = ctx.guild.get_role(int(config['ADMIN_ROLE_ID']))
-    return mod in ctx.author.roles or admin in ctx.author.roles
+    return mod in ctx.author.roles or admin in ctx.author.roles or ctx.author.id == ctx.guild.owner.id
 
 def getvars(bot, ctx, arg): # gets the user, reason and member for the mod functions
     member_id = ""
@@ -26,7 +26,7 @@ def getvars(bot, ctx, arg): # gets the user, reason and member for the mod funct
     return reason, member
 
 def modactions(ctx, reason, member, action): # writes the embed and dm for the mod functions
-    if ctx.author.top_role > member.top_role or ctx.author == ctx.guild.owner:
+    if ctx.author.top_role > member.top_role or ctx.author.id == ctx.guild.owner.id:
         if member.avatar:
             avatarurl = "https://cdn.discordapp.com/avatars/" + str(member.id) + "/" + member.avatar + ".webp"
         else:
@@ -100,13 +100,12 @@ def album(m,mentions):
     disco4 = (["disco4","cyberpunk2020","cyberpunk2.0.0.0","cyberpunk2.0.0.0.","body/prison","bodyprison","powerfantasy","judgmentnight","innocence","fullofhealth","colors","hateyou","dflooks","d.f.looks","massgrave","deliciousape","hardtobeagod"],755050227215630426)
     disco3 = (["disco3","euphoria","slumlord","crusher"],755050414008696852)
     disco2 = (["disco2","usaboys","u.s.a.boys"],755050225751556117)
-    mp3 = (["tears"],755047462896533605)
     payne = (["pain", "<:max:697638034937479239>"],697638034937479239)
     powercaco = (["powerfantasy"],766716666540326932)
     #ping = (["774402228084670515"],788902728658452481)
 
     cacoheart = ([("good","love","based","thank","great","amazing","well"),("bad","racist","racism","cringe","dumb","idiot","stupid","bug","n'twork","notwork","suck","shit","poo","bitch")],804113756622684220,[697627002202750976,708429172737048606,735209358379450471,736196814654668830,"notfunny"])
-    albums = [health,getcolor,deathmagic,vol4,disco2,disco3,mp3,payne,powercaco]
+    albums = [health,getcolor,deathmagic,vol4,disco2,disco3,payne,powercaco]
 
     if "disco4+" in m or "disco4plus" in m:
         albuml.append(827609782176972801)
