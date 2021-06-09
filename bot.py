@@ -454,6 +454,26 @@ async def pin(ctx):
             await message_to_pin.pin(reason="Pinned by " + ctx.author.name)
             await ctx.message.delete()
 
+@bot.command()
+async def unpin(ctx):
+    flag = False
+    club_channels = [config['MOVIE_CLUB_ID'],config['BOOK_CLUB_ID'],config['ANIME_CLUB_ID'],config['MUSIC_CLUB_ID'],config['ART_CLUB_ID'],config['GAMING_CLUB_ID'],config['FOOD_CLUB_ID']]
+    if str(ctx.channel.id) in club_channels:
+        for role in ctx.author.roles:
+            if role.name == "CLUB LEADER" or aux.checkmod(ctx):
+                flag = True
+                break
+    if flag:
+        if not(ctx.message.reference):
+            await ctx.reply("Reply to the message you want to pin.")
+        else:
+            message_to_unpin = await ctx.channel.fetch_message(ctx.message.reference.message_id)
+            pinned_messages = await ctx.channel.pins()
+            for message in pinned_messages:
+                if message.id == message_to_unpin.id:
+                    await message.unpin(reason="Unpinned by " + ctx.author.name)
+                    break
+
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
