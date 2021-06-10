@@ -427,7 +427,7 @@ async def pin(ctx):
             await ctx.message.delete()
 
 @bot.command()
-@commands.check_any(commands.has_any_role("CLUB LEADER", "MODERATOR", "ADMIN"))
+@commands.has_any_role("CLUB LEADER", "MODERATOR", "ADMIN")
 async def unpin(ctx):
     club_channels = [config['MOVIE_CLUB_ID'],config['BOOK_CLUB_ID'],config['ANIME_CLUB_ID'],config['MUSIC_CLUB_ID'],config['ART_CLUB_ID'],config['GAMING_CLUB_ID'],config['FOOD_CLUB_ID']]
     if str(ctx.channel.id) in club_channels:
