@@ -85,10 +85,8 @@ def convertembed(t):
 ## MOD COMMANDS ##
 
 @bot.command()
+@commands.has_any_role("MODERATOR", "ADMIN")
 async def warn(ctx, *, arg):
-    if not(aux.checkmod(ctx)):
-        return
-        
     reason, member = aux.getvars(bot, ctx, arg)
     if not(member):
         await ctx.send(member.mention + " is not a member of HEALTHcord.")
@@ -106,10 +104,8 @@ async def warn(ctx, *, arg):
         await ctx.send("You cannot warn this user.")
 
 @bot.command()
+@commands.has_any_role("MODERATOR", "ADMIN")
 async def ban(ctx, *, arg):
-    if not(aux.checkmod(ctx)):
-        return
-
     reason, member = aux.getvars(bot, ctx, arg)
     if not(member):
         await ctx.send(member.mention + " is not a member of HEALTHcord.")
@@ -131,10 +127,8 @@ async def ban(ctx, *, arg):
         await ctx.send("You cannot ban this user.")
 
 @bot.command()
+@commands.has_any_role("MODERATOR", "ADMIN")
 async def unban(ctx, *, arg):
-    if not(aux.checkmod(ctx)):
-        return
-
     reason, member = aux.getvars(bot, ctx, arg)
     if not(member):
         await ctx.send("I cannot find this user. Please unban " + member.mention + " manually.")
@@ -156,10 +150,8 @@ async def unban(ctx, *, arg):
         await ctx.send("You cannot ban this user.")
 
 @bot.command()
+@commands.has_any_role("MODERATOR", "ADMIN")
 async def kick(ctx, *, arg):
-    if not(aux.checkmod(ctx)):
-        return
-
     reason, member = aux.getvars(bot, ctx, arg)
     if not(member):
         await ctx.send(member.mention + " is not a member of HEALTHcord.")
@@ -178,10 +170,8 @@ async def kick(ctx, *, arg):
         await ctx.send("You cannot kick this user.")
 
 @bot.command()
+@commands.has_any_role("MODERATOR", "ADMIN")
 async def mute(ctx, *, arg):
-    if not(aux.checkmod(ctx)):
-        return
-
     reason, member = aux.getvars(bot, ctx, arg)
 
     if not(member):
@@ -222,10 +212,8 @@ async def mute(ctx, *, arg):
         await ctx.send("You cannot mute this user.")
 
 @bot.command()
+@commands.has_any_role("MODERATOR", "ADMIN")
 async def unmute(ctx, *, arg):
-    if not(aux.checkmod(ctx)):
-        return
-
     reason, member = aux.getvars(bot, ctx, arg)
     if not(member):
         await ctx.send(member.mention + " is not a member of HEALTHcord.")
@@ -245,17 +233,13 @@ async def unmute(ctx, *, arg):
         await ctx.send("You cannot unmute this user.")
 
 @bot.command()
+@commands.has_any_role("MODERATOR", "ADMIN")
 async def spam(ctx, *, arg):
-    if not(aux.checkmod(ctx)):
-        return
-    for x in range(int(arg)):
         await ctx.send("spam")
 
 @bot.command()
+@commands.has_any_role("MODERATOR", "ADMIN")
 async def purge(ctx, *, arg):
-    if not(aux.checkmod(ctx)):
-        return
-
     await ctx.message.delete()
     deleted = await ctx.channel.purge(limit= int(arg))
     deletedstr = ""
@@ -280,10 +264,8 @@ async def purge(ctx, *, arg):
     await modlog.send(embed= embed)
 
 @bot.command()
+@commands.has_any_role("MODERATOR", "ADMIN")
 async def backup(ctx):
-    if not(aux.checkmod(ctx)):
-        return
-
     now = str(datetime.now())
     now = now.split(' ')[0]
     templates = await ctx.guild.templates()
@@ -335,14 +317,13 @@ async def ticketmessage(ctx, *, arg):
         roles_support = (message.id, channel_id)
 
 @bot.command()
+@commands.has_any_role("MODERATOR", "ADMIN")
 async def deletebackup(ctx):
     await ctx.guild.delete()
 
 @bot.command()
+@commands.has_any_role("MODERATOR", "ADMIN")
 async def motd(ctx, *, arg):    # setting someone as the member of the day
-    if not(aux.checkmod(ctx)):
-        return
-
     motd = ctx.guild.get_role(int(config['MOTD_ROLE_ID']))
     reason, member = aux.getvars(bot, ctx, arg)
 
@@ -392,10 +373,8 @@ async def roledump(ctx, *, arg):
     await ctx.send(embed= embed)
 
 @bot.command()
+@commands.has_any_role("MODERATOR", "ADMIN")
 async def createtrigger(ctx, *, arg):
-    if not(aux.checkmod(ctx)):
-        return
-
     '''sql = "INSERT INTO `Trigger` (name, content,embed) VALUES (%s, %s, 0)"
     val = (arg1, arg2)
     mycursor = healthbot.cursor()
@@ -412,10 +391,8 @@ async def createtrigger(ctx, *, arg):
         await ctx.send("Invalid trigger.")
 
 @bot.command()
+@commands.has_any_role("MODERATOR", "ADMIN")
 async def deletetrigger(ctx, *, arg):
-    if not(aux.checkmod(ctx)):
-        return
-
     '''mycursor = healthbot.cursor()
     sql = "DELETE FROM `Trigger` WHERE name = '" + arg + "'"
     mycursor.execute(sql)
@@ -438,15 +415,10 @@ async def timeout(ctx, *, arg):
     await ctx.author.send("Your timeout in HEALTHcord has ended.")
 
 @bot.command()
+@commands.has_any_role("CLUB LEADER", "MODERATOR", "ADMIN")
 async def pin(ctx):
-    flag = False
     club_channels = [config['MOVIE_CLUB_ID'],config['BOOK_CLUB_ID'],config['ANIME_CLUB_ID'],config['MUSIC_CLUB_ID'],config['ART_CLUB_ID'],config['GAMING_CLUB_ID'],config['FOOD_CLUB_ID']]
     if str(ctx.channel.id) in club_channels:
-        for role in ctx.author.roles:
-            if role.name == "CLUB LEADER" or aux.checkmod(ctx):
-                flag = True
-                break
-    if flag:
         if not(ctx.message.reference):
             await ctx.reply("Reply to the message you want to pin.")
         else:
@@ -455,15 +427,10 @@ async def pin(ctx):
             await ctx.message.delete()
 
 @bot.command()
+@commands.has_any_role("CLUB LEADER", "MODERATOR", "ADMIN")
 async def unpin(ctx):
-    flag = False
     club_channels = [config['MOVIE_CLUB_ID'],config['BOOK_CLUB_ID'],config['ANIME_CLUB_ID'],config['MUSIC_CLUB_ID'],config['ART_CLUB_ID'],config['GAMING_CLUB_ID'],config['FOOD_CLUB_ID']]
     if str(ctx.channel.id) in club_channels:
-        for role in ctx.author.roles:
-            if role.name == "CLUB LEADER" or aux.checkmod(ctx):
-                flag = True
-                break
-    if flag:
         if not(ctx.message.reference):
             await ctx.reply("Reply to the message you want to pin.")
         else:
