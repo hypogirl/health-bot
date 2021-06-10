@@ -464,7 +464,7 @@ async def on_message(message):
             print(message.content + " is an invalid command.")
         return
 
-    if message.channel.id == int(config['WHOLESOME_MEMES_ID']) or message.channel.id ==int (config['ART_SHARE_ID']):
+    if str(message.channel.id) in [config['WHOLESOME_MEMES_ID'], config['ART_SHARE_ID'], config['ART_CLUB_ID']]:
         if message.content and not(message.attachments) and not(aux.check_url(message.content)):
             await message.delete()
 
