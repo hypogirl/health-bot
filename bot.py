@@ -464,9 +464,18 @@ async def on_message(message):
             print(message.content + " is an invalid command.")
         return
 
-    if str(message.channel.id) in [config['WHOLESOME_MEMES_ID'], config['ART_SHARE_ID'], config['ART_CLUB_ID']]:
-        if message.content and not(message.attachments) and not(aux.check_url(message.content)):
-            await message.delete()
+    if not(aux.checkmod(message)):
+        if str(message.channel.id) == config['ART_CLUB_ID']:
+            flag = True
+            for role in message.author.roles:
+                if role.name == "CLUB LEADER":
+                    flag = False
+                    break
+            if flag and message.content and not(message.attachments) and not(aux.check_url(message.content)):
+                await message.delete()
+        elif str(message.channel.id) in [config['WHOLESOME_MEMES_ID'], config['ART_SHARE_ID']]:
+            if message.content and not(message.attachments) and not(aux.check_url(message.content)):
+                await message.delete()
 
     if message.content.lower() in ["musik make love to " + bot.user.mention,"musik make love to health bot","musik make love to health :: bot"]:
         await asyncio.sleep(1)
