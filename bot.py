@@ -24,9 +24,9 @@ healthbot = mysql.connector.connect(
 intents = discord.Intents().all()
 bot = commands.Bot(command_prefix='!', intents=intents)
 bot.remove_command('help') #removing the default help command
-mod_support = (None,None)
-merch_support = (None,None)
-roles_support = (None,None)
+mod_support = (int(config['MOD_SUPPORT_MESSAGE_ID']),int(config['MOD_SUPPORT_CHANNEL_ID']))
+merch_support = (int(config['MERCH_SUPPORT_MESSAGE_ID']),int(config['MERCH_SUPPORT_CHANNEL_ID']))
+roles_support = (int(config['ROLES_SUPPORT_MESSAGE_ID']),int(config['ROLES_SUPPORT_CHANNEL_ID']))
 open_tickets = {}
 closed_tickets = {}
 
@@ -284,6 +284,7 @@ async def backup(ctx):
     await ctx.send("Backup server created.\n" + invite.url)
 
 @bot.command()
+@commands.has_any_role("MODERATOR", "ADMIN")
 async def ticketmessage(ctx, *, arg):
     global mod_support
     global merch_support
@@ -600,110 +601,132 @@ async def create_ticket_channel(init_message,name,user):
     open_tickets[str(message.id)] = user
 
 @bot.event
-async def on_reaction_add(reaction, user):
-    # tickets
-    global mod_support
-    global merch_support
-    global roles_support
-    global open_tickets
-    global closed_tickets
-    if user != bot.user:
-        flag_mod = await support_check(mod_support, reaction, user)
-        flag_merch = await support_check(merch_support, reaction, user)
-        flag_roles = await support_check(roles_support, reaction, user)
-        init_message = "Hello! " + user.mention
-        if flag_mod:
-            init_message += "\nWhat's the issue?\n\n``(React to this message with 🔒 to close this ticket.)``"
-            await create_ticket_channel(init_message,"general-ticket",user)
-        elif flag_merch:
-            init_message += "\nDo you have an issue with a merch order?\n" + user.guild.get_role(int(config['MERCH_SUPPORT_ID'])).mention +" will get back to you shortly.\n\n``(React to this message with 🔒 to close this ticket.)``"
-            await create_ticket_channel(init_message,"merch-ticket",user)
-        elif flag_roles:
-            init_message += "\nAre you missing some roles?\n\n``(React to this message with 🔒 to close this ticket.)``"
-            await create_ticket_channel(init_message,"roles-ticket",user)
-        
+async def on_raw_reaction_add(payload):
+    if payload.user_id != bot.user.id:
+        # tickets
+        global mod_support
+        global merch_support
+        global roles_support
+        global open_tickets
+        global closed_tickets
+        if payload.channel_id in [mod_support[1],merch_support[1],roles_support[1]]:
+            # converting payload to usable variables
+            healthcord = bot.get_guild(payload.guild_id)
+            user = healthcord.get_member(payload.user_id)
+            channel = healthcord.get_channel(payload.channel_id)
+            message = await channel.fetch_message(payload.message_id)
+            reaction = None
+            for reaction_temp in message.reactions:
+                if reaction_temp.emoji == payload.emoji:
+                    reaction = reaction_temp
+                    break
+            flag_mod = await support_check(mod_support, reaction, user)
+            flag_merch = await support_check(merch_support, reaction, user)
+            flag_roles = await support_check(roles_support, reaction, user)
+            init_message = "Hello! " + user.mention
+            if flag_mod:
+                init_message += "\nWhat's the issue?\n\n``(React to this message with 🔒 to close this ticket.)``"
+                await create_ticket_channel(init_message,"general-ticket",user)
+            elif flag_merch:
+                init_message += "\nDo you have an issue with a merch order?\n" + user.guild.get_role(int(config['MERCH_SUPPORT_ID'])).mention +" will get back to you shortly.\n\n``(React to this message with 🔒 to close this ticket.)``"
+                await create_ticket_channel(init_message,"merch-ticket",user)
+            elif flag_roles:
+                init_message += "\nAre you missing some roles?\n\n``(React to this message with 🔒 to close this ticket.)``"
+                await create_ticket_channel(init_message,"roles-ticket",user)
 
-        if str(reaction.message.id) in open_tickets and reaction.emoji == "🔒":
-            await reaction.remove(user) 
-            closed_ticket_cat = user.guild.get_channel(int(config['CLOSED_TICKET_CAT_ID']))
-            await reaction.message.channel.move(category= closed_ticket_cat, end= True)
-            overwrites = {user.guild.default_role: discord.PermissionOverwrite(read_messages=False), open_tickets[str(reaction.message.id)]: discord.PermissionOverwrite(read_messages=False)}
-            if "merch" in reaction.message.channel.name:
-                overwrites[user.guild.get_role(int(config['MERCH_SUPPORT_ID']))] = discord.PermissionOverwrite(read_messages=True)
-            await reaction.message.channel.edit(overwrites= overwrites)
-            message = await reaction.message.channel.send("``React to this message with 🔓 to re-open this ticket.``")
-            await message.add_reaction("🔓")
-            closed_tickets[str(message.id)] = open_tickets[str(reaction.message.id)]
-            open_tickets.pop(str(reaction.message.id))
+            if str(reaction.message.id) in open_tickets and reaction.emoji == "🔒":
+                await reaction.remove(user) 
+                closed_ticket_cat = user.guild.get_channel(int(config['CLOSED_TICKET_CAT_ID']))
+                await reaction.message.channel.move(category= closed_ticket_cat, end= True)
+                overwrites = {user.guild.default_role: discord.PermissionOverwrite(read_messages=False), open_tickets[str(reaction.message.id)]: discord.PermissionOverwrite(read_messages=False)}
+                if "merch" in reaction.message.channel.name:
+                    overwrites[user.guild.get_role(int(config['MERCH_SUPPORT_ID']))] = discord.PermissionOverwrite(read_messages=True)
+                await reaction.message.channel.edit(overwrites= overwrites)
+                message = await reaction.message.channel.send("``React to this message with 🔓 to re-open this ticket.``")
+                await message.add_reaction("🔓")
+                closed_tickets[str(message.id)] = open_tickets[str(reaction.message.id)]
+                open_tickets.pop(str(reaction.message.id))
 
-        elif str(reaction.message.id) in closed_tickets and reaction.emoji == "🔓":
-            await reaction.remove(user)
-            open_ticket_cat = user.guild.get_channel(int(config['OPEN_TICKET_CAT_ID']))
-            await reaction.message.channel.move(category= open_ticket_cat, end= True)
-            overwrites = {user.guild.default_role: discord.PermissionOverwrite(read_messages=False), closed_tickets[str(reaction.message.id)]: discord.PermissionOverwrite(read_messages=True)}
-            if "merch" in reaction.message.channel.name:
-                overwrites[user.guild.get_role(int(config['MERCH_SUPPORT_ID']))] = discord.PermissionOverwrite(read_messages=True)
-            await reaction.message.channel.edit(overwrites= overwrites)
-            message = await reaction.message.channel.send("``React to this message with 🔒 to close this ticket.``")
-            await message.add_reaction("🔒")
-            open_tickets[str(message.id)] = closed_tickets[str(reaction.message.id)]
-            closed_tickets.pop(str(reaction.message.id))
+            elif str(reaction.message.id) in closed_tickets and reaction.emoji == "🔓":
+                await reaction.remove(user)
+                open_ticket_cat = user.guild.get_channel(int(config['OPEN_TICKET_CAT_ID']))
+                await reaction.message.channel.move(category= open_ticket_cat, end= True)
+                overwrites = {user.guild.default_role: discord.PermissionOverwrite(read_messages=False), closed_tickets[str(reaction.message.id)]: discord.PermissionOverwrite(read_messages=True)}
+                if "merch" in reaction.message.channel.name:
+                    overwrites[user.guild.get_role(int(config['MERCH_SUPPORT_ID']))] = discord.PermissionOverwrite(read_messages=True)
+                await reaction.message.channel.edit(overwrites= overwrites)
+                message = await reaction.message.channel.send("``React to this message with 🔒 to close this ticket.``")
+                await message.add_reaction("🔒")
+                open_tickets[str(message.id)] = closed_tickets[str(reaction.message.id)]
+                closed_tickets.pop(str(reaction.message.id))
 
-    # mod-log invites
-    global invitemessage
-    if reaction.message in invitemessage and reaction.emoji == "❌" and user != bot.user:
-        invite = invitemessage[reaction.message]
-        if invite.max_uses:
-            maxuses = " out of " + str(invite.max_uses)
-        else:
-            maxuses =  ""
-        embed = discord.Embed(title= " ", description= "**Invite deleted** \n**Channel: **" + invite.channel.mention + "\n**Uses:** " + str(invite.uses) + maxuses, color= 0xfffcbb)
-        embed.set_author(name="New invite (deleted)")
-        await invite.delete()
-        await reaction.message.edit(embed = embed)
+        # mod-log invites
+        if payload.channel_id == int(config['MOD_LOG_ID']):
+            global invitemessage
+            modlog = bot.get_channel(payload.channel_id)
+            message = await modlog.fetch_message(payload.message_id)
+            if message in invitemessage and payload.emoji == "❌":
+                invite = invitemessage[message]
+                if invite.max_uses:
+                    maxuses = " out of " + str(invite.max_uses)
+                else:
+                    maxuses =  ""
+                embed = discord.Embed(title= " ", description= "**Invite deleted** \n**Channel: **" + invite.channel.mention + "\n**Uses:** " + str(invite.uses) + maxuses, color= 0xfffcbb)
+                embed.set_author(name="New invite (deleted)")
+                await invite.delete()
+                await message.edit(embed = embed)
         
     # curation
     global last_curated_message_id
     healthcurated = bot.get_channel(int(config['CURATION_CHANNEL_ID']))
-    if reaction.message.id != last_curated_message_id and reaction.count == 5 and reaction.emoji != str(reaction.emoji) and (reaction.emoji.name == "cacostar" or reaction.emoji.name == "russtar"):
-        serverid = str(reaction.message.guild.id)
-        channelid = str(reaction.message.channel.id)
-        messageid = str(reaction.message.id)
-        messageurl = "https://discord.com/channels/" + serverid + "/" + channelid + "/" + messageid
-        
-        if reaction.message.author.avatar:
-            avatarurl = "https://cdn.discordapp.com/avatars/" + str(reaction.message.author.id) + "/" + reaction.message.author.avatar + ".webp"
-        else:
-            avatarurl = "https://cdn.discordapp.com/avatars/774402228084670515/5ef539d5f3e8d576c4854768727bc75a.png"
-
-        if reaction.message.embeds and reaction.message.author.id == 372175794895585280: # haiku bot ID
-            description = reaction.message.embeds[0].description.replace("\n\n","\n")
-            embed = discord.Embed(description=description, color=0xff0000)
-            embed.set_author(name="Haiku by " + reaction.message.embeds[0].footer.text[2:])
-        else:
-            embed = discord.Embed(description=reaction.message.content, color=0xff0000)
-            embed.set_author(name=reaction.message.author.display_name, icon_url=avatarurl)
+    if payload.emoji != str(payload.emoji) and (payload.emoji.name == "cacostar" or payload.emoji.name == "russtar") and payload.message_id != last_curated_message_id:
+        healthcord = bot.get_guild(payload.guild_id)
+        channel = healthcord.get_channel(payload.channel_id)
+        message = await channel.fetch_message(payload.message_id)
+        reaction = None
+        for reaction_temp in message.reactions:
+            if reaction_temp.emoji == payload.emoji:
+                reaction = reaction_temp
+                break
+        if reaction.count == 5:
+            serverid = str(reaction.message.guild.id)
+            channelid = str(reaction.message.channel.id)
+            messageid = str(reaction.message.id)
+            messageurl = "https://discord.com/channels/" + serverid + "/" + channelid + "/" + messageid
             
-        if reaction.message.attachments:
-            embed.set_image(url=reaction.message.attachments[0].url)
-        
-        embed.add_field(name="#" + reaction.message.channel.name, value="[Jump to message!](" + messageurl + ")", inline=False)
-        
-        if reaction.message.reference:
-            replied_message = await reaction.message.channel.fetch_message(reaction.message.reference.message_id) # getting the message it's being replied to
-            
-            if replied_message.author.avatar:
-                replied_avatarurl = "https://cdn.discordapp.com/avatars/" + str(replied_message.author.id) + "/" + replied_message.author.avatar + ".webp"
+            if reaction.message.author.avatar:
+                avatarurl = "https://cdn.discordapp.com/avatars/" + str(reaction.message.author.id) + "/" + reaction.message.author.avatar + ".webp"
             else:
-                replied_avatarurl = "https://cdn.discordapp.com/avatars/774402228084670515/5ef539d5f3e8d576c4854768727bc75a.png"
+                avatarurl = "https://cdn.discordapp.com/avatars/774402228084670515/5ef539d5f3e8d576c4854768727bc75a.png"
 
-            embed.add_field(name="──────", value= "*This was a reply to:*")
-            embed.set_footer(text=replied_message.author.display_name + "\n" + replied_message.content, icon_url=replied_avatarurl)
+            if reaction.message.embeds and reaction.message.author.id == 372175794895585280: # haiku bot ID
+                description = reaction.message.embeds[0].description.replace("\n\n","\n")
+                embed = discord.Embed(description=description, color=0xff0000)
+                embed.set_author(name="Haiku by " + reaction.message.embeds[0].footer.text[2:])
+            else:
+                embed = discord.Embed(description=reaction.message.content, color=0xff0000)
+                embed.set_author(name=reaction.message.author.display_name, icon_url=avatarurl)
+                
+            if reaction.message.attachments:
+                embed.set_image(url=reaction.message.attachments[0].url)
+            
+            embed.add_field(name="#" + reaction.message.channel.name, value="[Jump to message!](" + messageurl + ")", inline=False)
+            
+            if reaction.message.reference:
+                replied_message = await reaction.message.channel.fetch_message(reaction.message.reference.message_id) # getting the message it's being replied to
+                
+                if replied_message.author.avatar:
+                    replied_avatarurl = "https://cdn.discordapp.com/avatars/" + str(replied_message.author.id) + "/" + replied_message.author.avatar + ".webp"
+                else:
+                    replied_avatarurl = "https://cdn.discordapp.com/avatars/774402228084670515/5ef539d5f3e8d576c4854768727bc75a.png"
 
-        else:
-            embed.set_footer(text=reaction.message.id)
-        
-        await healthcurated.send(embed=embed)
+                embed.add_field(name="──────", value= "*This was a reply to:*")
+                embed.set_footer(text=replied_message.author.display_name + "\n" + replied_message.content, icon_url=replied_avatarurl)
+
+            else:
+                embed.set_footer(text=reaction.message.id)
+            
+            await healthcurated.send(embed=embed)
 
 @bot.event
 async def on_member_join(member):
