@@ -439,6 +439,7 @@ async def unpin(ctx):
             for message in pinned_messages:
                 if message.id == message_to_unpin.id:
                     await message.unpin(reason="Unpinned by " + ctx.author.name)
+                    await ctx.message.delete()
                     break
 
 @bot.event
