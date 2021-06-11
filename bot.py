@@ -617,7 +617,7 @@ async def on_raw_reaction_add(payload):
             message = await channel.fetch_message(payload.message_id)
             reaction = None
             for reaction_temp in message.reactions:
-                if reaction_temp.emoji == payload.emoji:
+                if str(reaction_temp.emoji) == str(payload.emoji):
                     reaction = reaction_temp
                     break
             flag_mod = await support_check(mod_support, reaction, user)
