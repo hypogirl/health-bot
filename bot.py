@@ -609,7 +609,7 @@ async def on_raw_reaction_add(payload):
         global roles_support
         global open_tickets
         global closed_tickets
-        if payload.channel_id in [mod_support[1],merch_support[1],roles_support[1]]:
+        if payload.channel_id in [mod_support[1],merch_support[1],roles_support[1]] or str(payload.message_id) in open_tickets or str(payload.message_id) in closed_tickets:
             # converting payload to usable variables
             healthcord = bot.get_guild(payload.guild_id)
             user = healthcord.get_member(payload.user_id)
@@ -634,7 +634,7 @@ async def on_raw_reaction_add(payload):
                 init_message += "\nAre you missing some roles?\n\n``(React to this message with 🔒 to close this ticket.)``"
                 await create_ticket_channel(init_message,"roles-ticket",user)
 
-            if str(reaction.message.id) in open_tickets and str(reaction.emoji) == "🔒":
+            if str(reaction.message.id) in open_tickets and reaction.emoji == "🔒":
                 await reaction.remove(user) 
                 closed_ticket_cat = user.guild.get_channel(int(config['CLOSED_TICKET_CAT_ID']))
                 await reaction.message.channel.move(category= closed_ticket_cat, end= True)
@@ -647,7 +647,7 @@ async def on_raw_reaction_add(payload):
                 closed_tickets[str(message.id)] = open_tickets[str(reaction.message.id)]
                 open_tickets.pop(str(reaction.message.id))
 
-            elif str(reaction.message.id) in closed_tickets and str(reaction.emoji) == "🔓":
+            elif str(reaction.message.id) in closed_tickets and reaction.emoji == "🔓":
                 await reaction.remove(user)
                 open_ticket_cat = user.guild.get_channel(int(config['OPEN_TICKET_CAT_ID']))
                 await reaction.message.channel.move(category= open_ticket_cat, end= True)
