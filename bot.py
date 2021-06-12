@@ -676,7 +676,7 @@ async def on_raw_reaction_add(payload):
                 embed.set_author(name="New invite (deleted)")
                 await invite.delete()
                 await message.edit(embed = embed)
-        
+
     # curation
     global curated_messages
     if payload.emoji != str(payload.emoji) and (payload.emoji.name == "cacostar" or payload.emoji.name == "russtar") and payload.message_id not in curated_messages:
@@ -705,16 +705,16 @@ async def on_raw_reaction_add(payload):
                 embed = discord.Embed(description= description, color=0xff0000)
                 embed.set_author(name= "Haiku by " + message.embeds[0].footer.text[2:])
             else:
-                embed = discord.Embed(description= reaction.message.content, color=0xff0000)
+                embed = discord.Embed(description= message.content, color=0xff0000)
                 embed.set_author(name= message.author.display_name, icon_url=avatarurl)
                 
-            if reaction.message.attachments:
+            if message.attachments:
                 embed.set_image(url= message.attachments[0].url)
             
             embed.add_field(name="#" + message.channel.name, value="[Jump to message!](" + messageurl + ")", inline=False)
             
             if message.reference:
-                replied_message = await message.channel.fetch_message(reaction.message.reference.message_id) # getting the message it's being replied to
+                replied_message = await message.channel.fetch_message(message.reference.message_id) # getting the message it's being replied to
                 
                 if replied_message.author.avatar:
                     replied_avatarurl = "https://cdn.discordapp.com/avatars/" + str(replied_message.author.id) + "/" + replied_message.author.avatar + ".webp"
@@ -725,7 +725,7 @@ async def on_raw_reaction_add(payload):
                 embed.set_footer(text=replied_message.author.display_name + "\n" + replied_message.content, icon_url=replied_avatarurl)
 
             else:
-                embed.set_footer(text= message.created_at[:-10] + " UTC")
+                embed.set_footer(text= str(message.created_at)[:-10] + " UTC")
             
             healthcurated = bot.get_channel(int(config['CURATION_CHANNEL_ID']))
             await healthcurated.send(embed= embed)
