@@ -690,31 +690,31 @@ async def on_raw_reaction_add(payload):
                 break
         if reaction.count == 5:
             curated_messages.add(payload.message_id)
-            serverid = str(reaction.message.guild.id)
-            channelid = str(reaction.message.channel.id)
-            messageid = str(reaction.message.id)
+            serverid = str(message.guild.id)
+            channelid = str(message.channel.id)
+            messageid = str(message.id)
             messageurl = "https://discord.com/channels/" + serverid + "/" + channelid + "/" + messageid
             
             if reaction.message.author.avatar:
-                avatarurl = "https://cdn.discordapp.com/avatars/" + str(reaction.message.author.id) + "/" + reaction.message.author.avatar + ".webp"
+                avatarurl = "https://cdn.discordapp.com/avatars/" + str(message.author.id) + "/" + message.author.avatar + ".webp"
             else:
                 avatarurl = "https://cdn.discordapp.com/avatars/774402228084670515/5ef539d5f3e8d576c4854768727bc75a.png"
 
-            if reaction.message.embeds and reaction.message.author.id == 372175794895585280: # haiku bot ID
-                description = reaction.message.embeds[0].description.replace("\n\n","\n")
-                embed = discord.Embed(description=description, color=0xff0000)
-                embed.set_author(name="Haiku by " + reaction.message.embeds[0].footer.text[2:])
+            if message.embeds and message.author.id == 372175794895585280: # haiku bot ID
+                description = message.embeds[0].description.replace("\n\n","\n")
+                embed = discord.Embed(description= description, color=0xff0000)
+                embed.set_author(name= "Haiku by " + message.embeds[0].footer.text[2:])
             else:
-                embed = discord.Embed(description=reaction.message.content, color=0xff0000)
-                embed.set_author(name=reaction.message.author.display_name, icon_url=avatarurl)
+                embed = discord.Embed(description= reaction.message.content, color=0xff0000)
+                embed.set_author(name= message.author.display_name, icon_url=avatarurl)
                 
             if reaction.message.attachments:
-                embed.set_image(url=reaction.message.attachments[0].url)
+                embed.set_image(url= message.attachments[0].url)
             
-            embed.add_field(name="#" + reaction.message.channel.name, value="[Jump to message!](" + messageurl + ")", inline=False)
+            embed.add_field(name="#" + message.channel.name, value="[Jump to message!](" + messageurl + ")", inline=False)
             
-            if reaction.message.reference:
-                replied_message = await reaction.message.channel.fetch_message(reaction.message.reference.message_id) # getting the message it's being replied to
+            if message.reference:
+                replied_message = await message.channel.fetch_message(reaction.message.reference.message_id) # getting the message it's being replied to
                 
                 if replied_message.author.avatar:
                     replied_avatarurl = "https://cdn.discordapp.com/avatars/" + str(replied_message.author.id) + "/" + replied_message.author.avatar + ".webp"
@@ -725,10 +725,10 @@ async def on_raw_reaction_add(payload):
                 embed.set_footer(text=replied_message.author.display_name + "\n" + replied_message.content, icon_url=replied_avatarurl)
 
             else:
-                embed.set_footer(text=reaction.message.id)
+                embed.set_footer(text= message.created_at[:-10] + " UTC")
             
             healthcurated = bot.get_channel(int(config['CURATION_CHANNEL_ID']))
-            await healthcurated.send(embed=embed)
+            await healthcurated.send(embed= embed)
 
 @bot.event
 async def on_member_join(member):
