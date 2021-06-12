@@ -580,8 +580,6 @@ async def on_invite_create(invite):
     await message.add_reaction("❌")
     invitemessage[message] = invite
 
-last_curated_message_id = False
-
 async def support_check(ids, reaction, user):
     if reaction.message.id == ids[0]:
         await reaction.remove(user)
@@ -599,6 +597,9 @@ async def create_ticket_channel(init_message,name,user):
     message = await channel.send(init_message)
     await message.add_reaction("🔒")
     open_tickets[str(message.id)] = user
+
+
+curated_messages = set()
 
 @bot.event
 async def on_raw_reaction_add(payload):
@@ -677,18 +678,18 @@ async def on_raw_reaction_add(payload):
                 await message.edit(embed = embed)
         
     # curation
-    global last_curated_message_id
-    healthcurated = bot.get_channel(int(config['CURATION_CHANNEL_ID']))
-    if payload.emoji != str(payload.emoji) and (payload.emoji.name == "cacostar" or payload.emoji.name == "russtar") and payload.message_id != last_curated_message_id:
+    global curated_messages
+    if payload.emoji != str(payload.emoji) and (payload.emoji.name == "cacostar" or payload.emoji.name == "russtar") and payload.message_id not in curated_messages:
         healthcord = bot.get_guild(payload.guild_id)
         channel = healthcord.get_channel(payload.channel_id)
         message = await channel.fetch_message(payload.message_id)
         reaction = None
         for reaction_temp in message.reactions:
-            if reaction_temp.emoji == payload.emoji:
+            if str(reaction_temp.emoji) == str(payload.emoji):
                 reaction = reaction_temp
                 break
         if reaction.count == 5:
+            curated_messages.add(payload.message_id)
             serverid = str(reaction.message.guild.id)
             channelid = str(reaction.message.channel.id)
             messageid = str(reaction.message.id)
@@ -726,6 +727,7 @@ async def on_raw_reaction_add(payload):
             else:
                 embed.set_footer(text=reaction.message.id)
             
+            healthcurated = bot.get_channel(int(config['CURATION_CHANNEL_ID']))
             await healthcurated.send(embed=embed)
 
 @bot.event
