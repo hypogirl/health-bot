@@ -598,7 +598,7 @@ async def create_ticket_channel(init_message,name,user):
     channel = await user.guild.create_text_channel(name + "-" + user.name, category= open_ticket_cat, overwrites= overwrites)
     message = await channel.send(init_message)
     await message.add_reaction("🔒")
-    open_tickets[str(message.id)] = user
+    open_tickets[message] = (user,name)
 
 @bot.event
 async def on_raw_reaction_add(payload):
@@ -620,17 +620,26 @@ async def on_raw_reaction_add(payload):
                 if str(reaction_temp.emoji) == str(payload.emoji):
                     reaction = reaction_temp
                     break
-            flag_mod = await support_check(mod_support, reaction, user)
-            flag_merch = await support_check(merch_support, reaction, user)
-            flag_roles = await support_check(roles_support, reaction, user)
             init_message = "Hello! " + user.mention
-            if flag_mod:
+            if await support_check(mod_support, reaction, user):
+                for ticket_message,ticket_info in open_tickets.items():
+                    if ticket_info == (user,"general-ticket"):
+                        await ticket_message.channel.send(user.mention + " hello! You still have this opened ticket. A mod can assist you on whatever else you might need.")
+                        return
                 init_message += "\nWhat's the issue?\n\n``(React to this message with 🔒 to close this ticket.)``"
                 await create_ticket_channel(init_message,"general-ticket",user)
-            elif flag_merch:
+            elif await support_check(merch_support, reaction, user):
+                for ticket_message,ticket_info in open_tickets.items():
+                    if ticket_info == (user,"merch-ticket"):
+                        await ticket_message.channel.send(user.mention + " hello! You still have this opened ticket. A mod can assist you on whatever else you might need.")
+                        return
                 init_message += "\nDo you have an issue with a merch order?\n" + user.guild.get_role(int(config['MERCH_SUPPORT_ID'])).mention +" will get back to you shortly.\n\n``(React to this message with 🔒 to close this ticket.)``"
                 await create_ticket_channel(init_message,"merch-ticket",user)
-            elif flag_roles:
+            elif await support_check(roles_support, reaction, user):
+                for ticket_message,ticket_info in open_tickets.items():
+                    if ticket_info == (user,"roles-ticket"):
+                        await ticket_message.channel.send(user.mention + " hello! You still have this opened ticket. A mod can assist you on whatever else you might need.")
+                        return
                 init_message += "\nAre you missing some roles?\n\n``(React to this message with 🔒 to close this ticket.)``"
                 await create_ticket_channel(init_message,"roles-ticket",user)
 
@@ -638,27 +647,27 @@ async def on_raw_reaction_add(payload):
                 await reaction.remove(user) 
                 closed_ticket_cat = user.guild.get_channel(int(config['CLOSED_TICKET_CAT_ID']))
                 await reaction.message.channel.move(category= closed_ticket_cat, end= True)
-                overwrites = {user.guild.default_role: discord.PermissionOverwrite(read_messages=False), open_tickets[str(reaction.message.id)]: discord.PermissionOverwrite(read_messages=False)}
+                overwrites = {user.guild.default_role: discord.PermissionOverwrite(read_messages=False), open_tickets[message][0]: discord.PermissionOverwrite(read_messages=False)}
                 if "merch" in reaction.message.channel.name:
                     overwrites[user.guild.get_role(int(config['MERCH_SUPPORT_ID']))] = discord.PermissionOverwrite(read_messages=True)
                 await reaction.message.channel.edit(overwrites= overwrites)
-                message = await reaction.message.channel.send("``React to this message with 🔓 to re-open this ticket.``")
-                await message.add_reaction("🔓")
-                closed_tickets[str(message.id)] = open_tickets[str(reaction.message.id)]
-                open_tickets.pop(str(reaction.message.id))
+                new_message = await reaction.message.channel.send("``React to this message with 🔓 to re-open this ticket.``")
+                await new_message.add_reaction("🔓")
+                closed_tickets[new_message] = open_tickets[message][0]
+                open_tickets.pop(message)
 
             elif str(reaction.message.id) in closed_tickets and reaction.emoji == "🔓":
                 await reaction.remove(user)
                 open_ticket_cat = user.guild.get_channel(int(config['OPEN_TICKET_CAT_ID']))
                 await reaction.message.channel.move(category= open_ticket_cat, end= True)
-                overwrites = {user.guild.default_role: discord.PermissionOverwrite(read_messages=False), closed_tickets[str(reaction.message.id)]: discord.PermissionOverwrite(read_messages=True)}
+                overwrites = {user.guild.default_role: discord.PermissionOverwrite(read_messages=False), closed_tickets[message][0]: discord.PermissionOverwrite(read_messages=True)}
                 if "merch" in reaction.message.channel.name:
                     overwrites[user.guild.get_role(int(config['MERCH_SUPPORT_ID']))] = discord.PermissionOverwrite(read_messages=True)
                 await reaction.message.channel.edit(overwrites= overwrites)
-                message = await reaction.message.channel.send("``React to this message with 🔒 to close this ticket.``")
-                await message.add_reaction("🔒")
-                open_tickets[str(message.id)] = closed_tickets[str(reaction.message.id)]
-                closed_tickets.pop(str(reaction.message.id))
+                new_message = await reaction.message.channel.send("``React to this message with 🔒 to close this ticket.``")
+                await new_message.add_reaction("🔒")
+                open_tickets[new_message] = closed_tickets[message]
+                closed_tickets.pop(message)
 
         # mod-log invites
         if payload.channel_id == int(config['MOD_LOG_ID']):
