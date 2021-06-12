@@ -89,9 +89,33 @@ def timestrbuilder(seconds, secondsint, suffix):
         secondsint *= 60 * 60 * 24 * 365
     return suffix,secondsint
 
+def remove_spoiler(m):
+    c_list = [(0,0)]
+    c = 0
+
+    while True:
+        for c in range(c,len(m)):
+            if m[c:c+2] == "||":
+                c_list.append((c,c+2))
+                break
+        c += 2
+        if c >= len(m) - 1:
+            break
+
+    m_removed = str()
+    for c in range(0,len(c_list)-1,2):
+        m_removed += m[c_list[c][1]:c_list[c+1][0]]
+    if len(c_list) % 2:
+        m_removed += m[c_list[-1][1]:]
+    else:
+        m_removed += m[c_list[-1][1]-2:]
+    
+    return m_removed
+
 def album(m,mentions):
     albuml = []
     m = "".join(m.lower().split()) # remove spaces, all lowercase, makes it easier for search
+    m = remove_spoiler(m) # removes spoiler text, not to react to it
 
     health = (["heaven", "girlattorney", "triceratops", "crimewave", "courtship", "zoothorns", "tabloidsores", "glitterpills", "perfectskin", "losttime","//m\\\\"],755047461734580306)
     getcolor = (["getcolor", "inheat","dieslow","nicegirls","death+","beforetigers","severin","eatflesh","wearewater","inviolet"],755047462640681030)
