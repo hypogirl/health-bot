@@ -4,22 +4,15 @@ from dotenv import dotenv_values
 import asyncio
 import auxfunctions as aux
 import discord
-import math
-import mysql.connector
+
+import sqlite3
 import random
 import time
 #from pathlib import Path
 
 config = dotenv_values('.env')
 
-'''
-healthbot = mysql.connector.connect(
-  host=config['DB_HOST'],
-  user=config['DB_USERNAME'],
-  password=config['DB_PASSWORD'],
-  database=config['DB_NAME']
-)
-'''
+healthbot = sqlite3.connect(config['SQLITE_DB_FILE'])
 
 intents = discord.Intents().all()
 bot = commands.Bot(command_prefix='!', intents=intents)
