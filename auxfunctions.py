@@ -115,7 +115,8 @@ def remove_spoiler(m):
 def album(m,mentions):
     albuml = []
     m = "".join(m.lower().split()) # remove spaces, all lowercase, makes it easier for search
-    m = remove_spoiler(m) # removes spoiler text, not to react to it
+    if "||" in m:
+        m = remove_spoiler(m) # removes spoiler text, not to react to it
 
     health = (["heaven", "girlattorney", "triceratops", "crimewave", "courtship", "zoothorns", "tabloidsores", "glitterpills", "perfectskin", "losttime","//m\\\\"],755047461734580306)
     getcolor = (["getcolor", "inheat","dieslow","nicegirls","death+","beforetigers","severin","eatflesh","wearewater","inviolet"],755047462640681030)
