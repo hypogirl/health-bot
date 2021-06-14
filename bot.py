@@ -8,7 +8,6 @@ import discord
 import sqlite3
 import random
 import time
-#from pathlib import Path
 
 config = dotenv_values('.env')
 
