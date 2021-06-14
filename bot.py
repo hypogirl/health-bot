@@ -3,8 +3,8 @@ from discord.ext import commands
 from dotenv import dotenv_values
 import asyncio
 import auxfunctions as aux
+import math
 import discord
-
 import sqlite3
 import random
 import time
