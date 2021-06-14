@@ -269,7 +269,7 @@ async def backup(ctx):
         await ctx.guild.create_template(name= "back up " + now)
         templates = await ctx.guild.templates()
         template = templates[0]
-    
+
     backup_guild = await template.create_guild(name= "back up " + now)
     await template.delete()
     channel = await backup_guild.create_text_channel(name= "invite-link-channel")
@@ -336,7 +336,7 @@ async def roledump(ctx, *, arg):
         role_id = int(arg)
     except:
         role_name = arg
-    
+
     if role_id:
         role = ctx.guild.get_role(role_id)
         if not(role):
@@ -347,7 +347,7 @@ async def roledump(ctx, *, arg):
         if not(role):
             await ctx.reply("Invalid role name provided.")
             return
-    
+
     memberlist = ""
     embed = discord.Embed(title="ROLE DUMP",description=role.name)
     i = 1
@@ -512,12 +512,12 @@ async def on_message_delete(message):
     if message.author.id in [372175794895585280,225522547154747392]: #its the haikubot and stock bot's ID, its useless showing when these are deleted
         return
     userstr = message.author.name + "#" + message.author.discriminator
-    
+
     if message.author.avatar:
         avatarurl = "https://cdn.discordapp.com/avatars/" + str(message.author.id) + "/" + message.author.avatar + ".webp"
     else:
         avatarurl = "https://cdn.discordapp.com/avatars/774402228084670515/5ef539d5f3e8d576c4854768727bc75a.png"
-    
+
     if message.content:
         description = message.content
     else:
@@ -628,7 +628,7 @@ async def on_raw_reaction_add(payload):
                 await create_ticket_channel(init_message,"roles-ticket",user)
 
             if str(reaction.message.id) in open_tickets and reaction.emoji == "🔒":
-                await reaction.remove(user) 
+                await reaction.remove(user)
                 closed_ticket_cat = user.guild.get_channel(int(config['CLOSED_TICKET_CAT_ID']))
                 await reaction.message.channel.move(category= closed_ticket_cat, end= True)
                 overwrites = {user.guild.default_role: discord.PermissionOverwrite(read_messages=False), open_tickets[str(reaction.message.id)]: discord.PermissionOverwrite(read_messages=False)}
@@ -668,7 +668,7 @@ async def on_raw_reaction_add(payload):
                 embed.set_author(name="New invite (deleted)")
                 await invite.delete()
                 await message.edit(embed = embed)
-        
+
     # curation
     global last_curated_message_id
     healthcurated = bot.get_channel(int(config['CURATION_CHANNEL_ID']))
@@ -686,7 +686,7 @@ async def on_raw_reaction_add(payload):
             channelid = str(reaction.message.channel.id)
             messageid = str(reaction.message.id)
             messageurl = "https://discord.com/channels/" + serverid + "/" + channelid + "/" + messageid
-            
+
             if reaction.message.author.avatar:
                 avatarurl = "https://cdn.discordapp.com/avatars/" + str(reaction.message.author.id) + "/" + reaction.message.author.avatar + ".webp"
             else:
@@ -699,15 +699,15 @@ async def on_raw_reaction_add(payload):
             else:
                 embed = discord.Embed(description=reaction.message.content, color=0xff0000)
                 embed.set_author(name=reaction.message.author.display_name, icon_url=avatarurl)
-                
+
             if reaction.message.attachments:
                 embed.set_image(url=reaction.message.attachments[0].url)
-            
+
             embed.add_field(name="#" + reaction.message.channel.name, value="[Jump to message!](" + messageurl + ")", inline=False)
-            
+
             if reaction.message.reference:
                 replied_message = await reaction.message.channel.fetch_message(reaction.message.reference.message_id) # getting the message it's being replied to
-                
+
                 if replied_message.author.avatar:
                     replied_avatarurl = "https://cdn.discordapp.com/avatars/" + str(replied_message.author.id) + "/" + replied_message.author.avatar + ".webp"
                 else:
@@ -718,7 +718,7 @@ async def on_raw_reaction_add(payload):
 
             else:
                 embed.set_footer(text=reaction.message.id)
-            
+
             await healthcurated.send(embed=embed)
 
 @bot.event
