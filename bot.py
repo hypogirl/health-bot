@@ -409,11 +409,18 @@ async def timeout(ctx, *, arg):
     await ctx.author.remove_roles(muted, reason="Timout ended", atomic=True)
     await ctx.author.send("Your timeout in HEALTHcord has ended.")
 
+club_channels = [config['MOVIE_CLUB_ID'],config['BOOK_CLUB_ID'],config['ANIME_CLUB_ID'],config['MUSIC_CLUB_ID'],config['ART_CLUB_ID'],config['GAMING_CLUB_ID'],config['FOOD_CLUB_ID'], config['HEALTH_BOYZ_ID']]
 @bot.command()
-@commands.has_any_role("CLUB LEADER", "MODERATOR", "ADMIN")
+@commands.has_any_role("CLUB LEADER", "MODERATOR", "ADMIN", "WARBOSS")
 async def pin(ctx):
-    club_channels = [config['MOVIE_CLUB_ID'],config['BOOK_CLUB_ID'],config['ANIME_CLUB_ID'],config['MUSIC_CLUB_ID'],config['ART_CLUB_ID'],config['GAMING_CLUB_ID'],config['FOOD_CLUB_ID']]
     if str(ctx.channel.id) in club_channels:
+        if not(ctx.message.reference):
+            await ctx.reply("Reply to the message you want to pin.")
+        else:
+            message_to_pin = await ctx.channel.fetch_message(ctx.message.reference.message_id)
+            await message_to_pin.pin(reason="Pinned by " + ctx.author.name)
+            await ctx.message.delete()
+    elif aux.checkmod(ctx):
         if not(ctx.message.reference):
             await ctx.reply("Reply to the message you want to pin.")
         else:
@@ -422,10 +429,20 @@ async def pin(ctx):
             await ctx.message.delete()
 
 @bot.command()
-@commands.has_any_role("CLUB LEADER", "MODERATOR", "ADMIN")
+@commands.has_any_role("CLUB LEADER", "MODERATOR", "ADMIN", "WARBOSS")
 async def unpin(ctx):
-    club_channels = [config['MOVIE_CLUB_ID'],config['BOOK_CLUB_ID'],config['ANIME_CLUB_ID'],config['MUSIC_CLUB_ID'],config['ART_CLUB_ID'],config['GAMING_CLUB_ID'],config['FOOD_CLUB_ID']]
     if str(ctx.channel.id) in club_channels:
+        if not(ctx.message.reference):
+            await ctx.reply("Reply to the message you want to pin.")
+        else:
+            message_to_unpin = await ctx.channel.fetch_message(ctx.message.reference.message_id)
+            pinned_messages = await ctx.channel.pins()
+            for message in pinned_messages:
+                if message.id == message_to_unpin.id:
+                    await message.unpin(reason="Unpinned by " + ctx.author.name)
+                    await ctx.message.delete()
+                    break
+    elif aux.checkmod(ctx):
         if not(ctx.message.reference):
             await ctx.reply("Reply to the message you want to pin.")
         else:
