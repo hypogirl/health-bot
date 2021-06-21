@@ -11,7 +11,7 @@ import time
 
 config = dotenv_values('.env')
 
-healthbot = sqlite3.connect(config['SQLITE_DB_FILE'])
+#healthbot = sqlite3.connect(config['SQLITE_DB_FILE'])
 
 intents = discord.Intents().all()
 bot = commands.Bot(command_prefix='!', intents=intents)
