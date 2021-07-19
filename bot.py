@@ -878,7 +878,7 @@ async def on_member_remove(member):
 
 @bot.event
 async def on_member_update(before, after):
-    if after.id == 830204658370871306 and before.status != after.status:
+    if after.id == 697891299080142919 and before.status != after.status:
         embed = discord.Embed(color=0xff0000)
         if after.status == discord.Status.online:
             embed.set_author(name="A wild BEEJ appeared!")
