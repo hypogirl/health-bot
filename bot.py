@@ -600,7 +600,7 @@ async def create_ticket_channel(init_message,name,user):
     global open_tickets
     global open_tickets_id
     merch_support_role = user.guild.get_role(int(config['MERCH_SUPPORT_ID']))
-    mod_role = user.guild.get_role(int(config['MOD_SUPPORT_ID']))
+    mod_role = user.guild.get_role(int(config['MOD_ROLE_ID']))
     overwrites = {user.guild.default_role: discord.PermissionOverwrite(read_messages=False), user: discord.PermissionOverwrite(read_messages=True), mod_role:discord.PermissionOverwrite(read_messages=True)}
     if name == "merch-ticket":
         overwrites[merch_support_role] = discord.PermissionOverwrite(read_messages=True)
@@ -664,7 +664,7 @@ async def on_raw_reaction_add(payload):
                 await reaction.remove(user) 
                 closed_ticket_cat = user.guild.get_channel(int(config['CLOSED_TICKET_CAT_ID']))
                 await reaction.message.channel.move(category= closed_ticket_cat, end= True)
-                mod_role = user.guild.get_role(int(config['MOD_SUPPORT_ID']))
+                mod_role = user.guild.get_role(int(config['MOD_ROLE_ID']))
                 overwrites = {user.guild.default_role: discord.PermissionOverwrite(read_messages=False), open_tickets[message][0]: discord.PermissionOverwrite(read_messages=False), mod_role: discord.PermissionOverwrite(read_messages=True)}
                 if "merch" in reaction.message.channel.name:
                     overwrites[user.guild.get_role(int(config['MERCH_SUPPORT_ID']))] = discord.PermissionOverwrite(read_messages=True)
