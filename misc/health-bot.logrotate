@@ -1,0 +1,5 @@
+/home/hackermans/logs/health-bot.log {
+    maxsize 100M
+    copytruncate
+    rotate 5
+}

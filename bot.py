@@ -1,25 +1,28 @@
-import discord
+from datetime import datetime
 from discord.ext import commands
+from dotenv import dotenv_values
+import asyncio
+import auxfunctions as aux
+import math
+import discord
+import sqlite3
 import random
 import time
-import math
-import asyncio
-from datetime import datetime
-import bottoken
-import mysql.connector
-import dbconnect
-import auxfunctions as aux
 
-healthbot = mysql.connector.connect(
-  host=dbconnect.h,
-  user=dbconnect.u,
-  password=dbconnect.p,
-  database="healthbot"
-)
+config = dotenv_values('.env')
+
+#healthbot = sqlite3.connect(config['SQLITE_DB_FILE'])
 
 intents = discord.Intents().all()
 bot = commands.Bot(command_prefix='!', intents=intents)
 bot.remove_command('help') #removing the default help command
+mod_support = (int(config['MOD_SUPPORT_MESSAGE_ID']),int(config['MOD_SUPPORT_CHANNEL_ID']))
+merch_support = (int(config['MERCH_SUPPORT_MESSAGE_ID']),int(config['MERCH_SUPPORT_CHANNEL_ID']))
+roles_support = (int(config['ROLES_SUPPORT_MESSAGE_ID']),int(config['ROLES_SUPPORT_CHANNEL_ID']))
+open_tickets = {}
+closed_tickets = {}
+open_tickets_id = set()
+closed_tickets_id = set()
 
 @bot.event
 async def on_ready():
@@ -27,7 +30,7 @@ async def on_ready():
 
 @bot.command()
 async def ping(ctx):
-    await ctx.send("<@" + str(ctx.author.id) + ">, pong!")
+    await ctx.message.reply("Pong!")
 
 #HELP COMMAND
 @bot.command()
@@ -48,7 +51,7 @@ async def help(ctx, *arg):
         return
     await ctx.author.send(embed=embed)
     if ctx.author.dm_channel != ctx.channel:
-        await ctx.channel.send(ctx.author.mention + ", I've sent you a DM with the help menu.")
+        await ctx.send(ctx.author.mention + ", I've sent you a DM with the help menu.")
 
 
 def checkdb(t):
@@ -76,110 +79,97 @@ def convertembed(t):
 ## MOD COMMANDS ##
 
 @bot.command()
+@commands.has_any_role("THE VIBEGUARD", "ADMIN")
 async def warn(ctx, *, arg):
-    healthguild = bot.get_guild(688206199992483851)
-    mod = healthguild.get_role(689280713153183795)
-    user,reason,member,memberID = aux.getvars(bot,ctx,arg,healthguild)
+    reason, member = aux.getvars(bot, ctx, arg)
     if not(member):
-        await ctx.channel.send("<@!" + str(memberID) + "> is not a member of HEALTHcord.")
+        await ctx.send(member.mention + " is not a member of HEALTHcord.")
         return
-    embed,message = aux.modactions(ctx,user,reason,member,healthguild,mod,"warned")
-    if embed == "notmod":
-        return
-    elif embed:
-        await ctx.channel.send(embed=embed)
-        embed2,modlog = aux.modlogembed(bot,"warn", reason, ctx, 0xfffcbb, user)
+    embed,message = aux.modactions(ctx, reason, member, "warned")
+    if embed:
+        await ctx.send(embed=embed)
+        embed2,modlog = aux.modlogembed(bot,"warn", reason, ctx, 0xfffcbb, member)
         await modlog.send(embed= embed2)
         try:
-            await user.send(message)
+            await member.send(message)
         except:
-            print(user.mention + " doesn't allow DMs. It's likely a bot.")
+            print(member.mention + " doesn't allow DMs. It's likely a bot.")
     else:
-        await ctx.channel.send("You cannot warn this user.")
+        await ctx.send("You cannot warn this user.")
 
 @bot.command()
+@commands.has_any_role("THE VIBEGUARD", "ADMIN")
 async def ban(ctx, *, arg):
-    healthguild = bot.get_guild(688206199992483851)
-    mod = healthguild.get_role(689280713153183795)
-    user,reason,member,memberID = aux.getvars(bot,ctx,arg,healthguild)
+    reason, member = aux.getvars(bot, ctx, arg)
     if not(member):
-        await ctx.channel.send("<@!" + str(memberID) + "> is not a member of HEALTHcord.")
+        await ctx.send(member.mention + " is not a member of HEALTHcord.")
         return
-    embed,message = aux.modactions(ctx,user,reason,member,healthguild,mod,"banned")
-    if embed == "notmod":
-        return
-    elif embed:
+    embed,message = aux.modactions(ctx, reason, member, "banned")
+    if embed:
         if reason =="":
-            await healthguild.ban(user,reason="​​​", delete_message_days=0)
+            await ctx.guild.ban(member,reason="​​​", delete_message_days=0)
         else:
-            await healthguild.ban(user,reason=reason + "​​​", delete_message_days=0)
-        await ctx.channel.send(embed=embed)
-        embed2,modlog = aux.modlogembed(bot,"ban", reason, ctx, 0xff0000, user)
+            await ctx.guild.ban(member,reason=reason + "​​​", delete_message_days=0)
+        await ctx.send(embed=embed)
+        embed2,modlog = aux.modlogembed(bot,"ban", reason, ctx, 0xff0000, member)
         await modlog.send(embed = embed2)
         try:
-            await user.send(message)
+            await member.send(message)
         except:
-            print(user.mention + " doesn't allow DMs. It's likely a bot.")
+            print(member.mention + " doesn't allow DMs. It's likely a bot.")
     else:
-        await ctx.channel.send("You cannot ban this user.")
+        await ctx.send("You cannot ban this user.")
 
 @bot.command()
+@commands.has_any_role("THE VIBEGUARD", "ADMIN")
 async def unban(ctx, *, arg):
-    healthguild = bot.get_guild(688206199992483851)
-    mod = healthguild.get_role(689280713153183795)
-    user,reason,member,memberID = aux.getvars(bot,ctx,arg,healthguild)
+    reason, member = aux.getvars(bot, ctx, arg)
     if not(member):
-        await ctx.channel.send("I cannot find this user. Please unban <@!" + str(memberID) + "> manually.")
+        await ctx.send("I cannot find this user. Please unban " + member.mention + " manually.")
         return
-    embed,message = aux.modactions(ctx,user,reason,member,healthguild,mod,"unbanned")
-    if embed == "notmod":
-        return
-    elif embed:
+    embed,message = aux.modactions(ctx, reason, member, "unbanned")
+    if embed:
         if reason == "":
-            await healthguild.unban(user,reason="​​​")
+            await ctx.guild.unban(member,reason="​​​")
         else:
-            await healthguild.unban(user,reason=reason + "​​​")
-        await ctx.channel.send(embed=embed)
-        embed2,modlog = aux.modlogembed(bot,"unban", reason, ctx, 0x149414, user)
+            await ctx.guild.unban(member,reason=reason + "​​​")
+        await ctx.send(embed=embed)
+        embed2,modlog = aux.modlogembed(bot,"unban", reason, ctx, 0x149414, member)
         await modlog.send(embed = embed2)
         try:
-            await user.send(message)
+            await member.send(message)
         except:
-            print(user.mention + " doesn't allow DMs. It's likely a bot.")
+            print(member.mention + " doesn't allow DMs. It's likely a bot.")
     else:
-        await ctx.channel.send("You cannot ban this user.")
+        await ctx.send("You cannot ban this user.")
 
 @bot.command()
+@commands.has_any_role("THE VIBEGUARD", "ADMIN")
 async def kick(ctx, *, arg):
-    healthguild = bot.get_guild(688206199992483851)
-    mod = healthguild.get_role(689280713153183795)
-    user,reason,member,memberID = aux.getvars(bot,ctx,arg,healthguild)
+    reason, member = aux.getvars(bot, ctx, arg)
     if not(member):
-        await ctx.channel.send("<@!" + str(memberID) + "> is not a member of HEALTHcord.")
+        await ctx.send(member.mention + " is not a member of HEALTHcord.")
         return
-    embed,message = aux.modactions(ctx,user,reason,member,healthguild,mod,"kicked")
-    if embed == "notmod":
-        return
-    elif embed:
+    embed,message = aux.modactions(ctx, reason, member, "kicked")
+    if embed:
         await member.kick()
-        await ctx.channel.send(embed=embed)
-        embed2,modlog = aux.modlogembed(bot,"kick", reason, ctx, 0xffa500, user)
+        await ctx.send(embed=embed)
+        embed2,modlog = aux.modlogembed(bot,"kick", reason, ctx, 0xffa500, member)
         await modlog.send(embed = embed2)
         try:
-            await user.send(message)
+            await member.send(message)
         except:
-            print(user.mention + " doesn't allow DMs. It's likely a bot.")
+            print(member.mention + " doesn't allow DMs. It's likely a bot.")
     else:
-        await ctx.channel.send("You cannot kick this user.")
+        await ctx.send("You cannot kick this user.")
 
 @bot.command()
+@commands.has_any_role("THE VIBEGUARD", "ADMIN")
 async def mute(ctx, *, arg):
-    healthguild = bot.get_guild(688206199992483851)
-    mod = healthguild.get_role(689280713153183795)
-    user,reason,member,memberID = aux.getvars(bot,ctx,arg,healthguild)
+    reason, member = aux.getvars(bot, ctx, arg)
 
     if not(member):
-        await ctx.channel.send("<@!" + str(memberID) + "> is not a member of HEALTHcord.")
+        await ctx.send(member.mention + " is not a member of HEALTHcord.")
         return
 
     seconds = ""
@@ -193,65 +183,57 @@ async def mute(ctx, *, arg):
     if suffix:
         reason = reason[x+2:]
         secondsint = int(seconds[:-1])
-        timestr,secondsint = aux.timestrbuilder(seconds,secondsint,suffix)
-        embed,message = aux.modactions(ctx,user,reason,member,healthguild,mod,"muted for " + timestr)
+        timestr, secondsint = aux.timestrbuilder(seconds,secondsint,suffix)
+        embed,message = aux.modactions(ctx, reason, member, "muted for " + timestr)
     else:
-        embed,message = aux.modactions(ctx,user,reason,member,healthguild,mod,"muted")
-    muted = healthguild.get_role(716467961631866922)
-    if embed == "notmod":
-        return
-    elif embed:
+        embed,message = aux.modactions(ctx, reason, member, "muted")
+    muted = ctx.guild.get_role(int(config['MUTED_ROLE_ID']))
+    if embed:
         await member.add_roles(muted,reason="Muted", atomic=True)
-        await ctx.channel.send(embed=embed)
-        embed2,modlog = aux.modlogembed(bot,"mute", reason, ctx, 0xfffcbb, user)
+        await ctx.send(embed=embed)
+        embed2,modlog = aux.modlogembed(bot,"mute", reason, ctx, 0xfffcbb, member)
         await modlog.send(embed = embed2)
         try:
-            await user.send(message)
+            await member.send(message)
         except:
-            print(user.mention + " doesn't allow DMs. It's likely a bot.")
+            print(member.mention + " doesn't allow DMs. It's likely a bot.")
         if timestr:
             await asyncio.sleep(secondsint)
             await member.remove_roles(muted, reason="Unmuted", atomic=True)
-            embed2,modlog = aux.modlogembed(bot,"unmute", "Timed unmute", ctx, 0x149414, user)
+            embed2,modlog = aux.modlogembed(bot,"unmute", "Timed unmute", ctx, 0x149414, member)
             await modlog.send(embed = embed2)
     else:
-        await ctx.channel.send("You cannot mute this user.")
+        await ctx.send("You cannot mute this user.")
 
 @bot.command()
+@commands.has_any_role("THE VIBEGUARD", "ADMIN")
 async def unmute(ctx, *, arg):
-    healthguild = bot.get_guild(688206199992483851)
-    mod = healthguild.get_role(689280713153183795)
-    user,reason,member,memberID = aux.getvars(bot,ctx,arg,healthguild)
+    reason, member = aux.getvars(bot, ctx, arg)
     if not(member):
-        await ctx.channel.send("<@!" + str(memberID) + "> is not a member of HEALTHcord.")
+        await ctx.send(member.mention + " is not a member of HEALTHcord.")
         return
-    embed,message = aux.modactions(ctx,user,reason,member,healthguild,mod,"unmuted")
-    muted = healthguild.get_role(716467961631866922)
-    if embed == "notmod":
-        return
-    elif embed:
+    embed,message = aux.modactions(ctx, reason, member, "unmuted")
+    muted = ctx.guild.get_role(int(config['MUTED_ROLE_ID']))
+    if embed:
         await member.remove_roles(muted, reason="Unmuted", atomic=True)
-        await ctx.channel.send(embed=embed)
-        embed2,modlog = aux.modlogembed(bot,"unmute", reason, ctx, 0x149414, user)
+        await ctx.send(embed=embed)
+        embed2,modlog = aux.modlogembed(bot,"unmute", reason, ctx, 0x149414, member)
         await modlog.send(embed = embed2)
         try:
-            await user.send(message)
+            await member.send(message)
         except:
-            print(user.mention + " doesn't allow DMs. It's likely a bot.")
+            print(member.mention + " doesn't allow DMs. It's likely a bot.")
     else:
-        await ctx.channel.send("You cannot unmute this user.")
+        await ctx.send("You cannot unmute this user.")
 
 @bot.command()
+@commands.has_any_role("THE VIBEGUARD", "ADMIN")
 async def spam(ctx, *, arg):
-    if not(aux.checkmod(bot,ctx)):
-        return
-    for x in range(int(arg)):
-        await ctx.channel.send("spam")
+        await ctx.send("spam")
 
 @bot.command()
+@commands.has_any_role("THE VIBEGUARD", "ADMIN")
 async def purge(ctx, *, arg):
-    if not(aux.checkmod(bot,ctx)):
-        return
     await ctx.message.delete()
     deleted = await ctx.channel.purge(limit= int(arg))
     deletedstr = ""
@@ -270,152 +252,213 @@ async def purge(ctx, *, arg):
     for x in users:
         deletedstr += "**" + x[0].name + "#" + x[0].discriminator + ":** " + str(x[1]) + "\n"
 
-    modlog = bot.get_channel(733746271684263936)
+    modlog = bot.get_channel(int(config['MOD_LOG_ID']))
     embed = discord.Embed(title=" ", description="Messages deleted:\n\n" + deletedstr, color=0xff0000)
     embed.set_author(name= str(len(deleted)) + " messages purged | #" + ctx.channel.name)
     await modlog.send(embed= embed)
 
 @bot.command()
-async def motd(ctx, *, arg):    # setting someone as the member of the day
-    if not(aux.checkmod(bot,ctx)):
-        return
-    healthguild = bot.get_guild(688206199992483851)
-    role = healthguild.get_role(753720334993326161)
-    userID = ""
+@commands.has_any_role("THE VIBEGUARD", "ADMIN")
+async def backup(ctx):
+    now = str(datetime.now())
+    now = now.split(' ')[0]
+    templates = await ctx.guild.templates()
+    if templates:
+        template = templates[0]
+        await template.sync()
+    else:
+        await ctx.guild.create_template(name= "back up " + now)
+        templates = await ctx.guild.templates()
+        template = templates[0]
 
+    backup_guild = await template.create_guild(name= "back up " + now)
+    await template.delete()
+    channel = await backup_guild.create_text_channel(name= "invite-link-channel")
+    invite = await channel.create_invite(max_uses=1)
+    await ctx.send("Backup server created.\n" + invite.url)
+
+@bot.command()
+@commands.has_any_role("THE VIBEGUARD", "ADMIN")
+async def ticketmessage(ctx, *, arg):
+    global mod_support
+    global merch_support
+    global roles_support
+
+    channel_id = ""
     for x in range(len(arg)):
         if arg[x].isnumeric():
-            userID += arg[x]
-        if arg[x] == ">":
+            channel_id += arg[x]
+        if arg[x] == ">" or arg[x] == " ":
             break
+    channel_id = int(channel_id)
+    ticket_type = arg[x+2:]
+    channel = ctx.guild.get_channel(channel_id)
+    await channel.purge()
+    embed = discord.Embed(description="To create a ticket react with 📩", color=0xff0000)
+    if ticket_type == "mod":
+        embed.set_author(name="Raise an issue with the mod team")
+        message = await channel.send(embed= embed)
+        mod_support = (message.id, channel_id)
+        await message.add_reaction("📩")
+    elif ticket_type == "merch":
+        embed.set_author(name="Got a problem with a merch order? Here's your place to raise a ticket.")
+        message = await channel.send(embed= embed)
+        await message.add_reaction("📩")
+        merch_support = (message.id, channel_id)
+    elif ticket_type == "roles":
+        embed.set_author(name="Missing a role?")
+        message = await channel.send(embed= embed)
+        await message.add_reaction("📩")
+        roles_support = (message.id, channel_id)
 
-    userID = int(userID)
-    member = healthguild.get_member(userID)
+@bot.command()
+@commands.has_any_role("THE VIBEGUARD", "ADMIN")
+async def deletebackup(ctx):
+    await ctx.guild.delete()
+
+@bot.command()
+@commands.has_any_role("THE VIBEGUARD", "ADMIN")
+async def motd(ctx, *, arg):    # setting someone as the member of the day
+    motd = ctx.guild.get_role(int(config['MOTD_ROLE_ID']))
+    reason, member = aux.getvars(bot, ctx, arg)
+
     emojis = [697621015337107466,737315507509657661,697879872391086113,697880868743544903,753291933950017627,753291934008606762,804113756622684220,709794793051390153]
     emoji = bot.get_emoji(random.choice(emojis))
-    await member.add_roles(role,reason="Member of the day", atomic=True)
-    message = await ctx.channel.send(member.mention + " is member of the day!")
+    await member.add_roles(motd,reason="Member of the day", atomic=True)
+    message = await ctx.send(member.mention + " is member of the day!")
     await message.add_reaction(emoji)
     await asyncio.sleep(86400)
-    await member.remove_roles(role,reason="End of the member of the day", atomic=True)
-
+    await member.remove_roles(motd,reason="End of the member of the day", atomic=True)
 
 @bot.command()
+async def roledump(ctx, *, arg):
+    role_id, role_name = False, False
+    try:
+        role_id = int(arg)
+    except:
+        role_name = arg
+
+    if role_id:
+        role = ctx.guild.get_role(role_id)
+        if not(role):
+            await ctx.reply("Invalid role ID provided.")
+            return
+    else:
+        role = discord.utils.get(ctx.guild.roles, name=role_name)
+        if not(role):
+            await ctx.reply("Invalid role name provided.")
+            return
+
+    memberlist = ""
+    embed = discord.Embed(title="ROLE DUMP",description=role.name)
+    i = 1
+    j = 0
+    for member in ctx.guild.members:
+        if i == 40:
+            j += 1
+            embed.add_field(name="Part " + str(j), value=memberlist, inline=False)
+            memberlist = ""
+            i = 1
+        if role in member.roles:
+            i += 1
+            memberlist += member.name + "#" + member.discriminator + "\n"
+    if memberlist:
+        j += 1
+        embed.add_field(name="Part " + str(j), value=memberlist, inline=False)
+    await ctx.send(embed= embed)
+
+@bot.command()
+@commands.has_any_role("THE VIBEGUARD", "ADMIN")
 async def createtrigger(ctx, *, arg):
-    if aux.checkmod(bot,ctx):
-        '''sql = "INSERT INTO `Trigger` (name, content,embed) VALUES (%s, %s, 0)"
-        val = (arg1, arg2)
-        mycursor = healthbot.cursor()
-        mycursor.execute(sql, val)
-        healthbot.commit()
-        await ctx.channel.send("Trigger created successfully.")'''
-        left = False
-        for x in range(len(arg)):
-            if arg[x] == " ":
-                left = arg[:x]
-                right = arg[x+1:]
-                break
-        if not(left):
-            await ctx.channel.send("Invalid trigger.")
+    '''sql = "INSERT INTO `Trigger` (name, content,embed) VALUES (%s, %s, 0)"
+    val = (arg1, arg2)
+    mycursor = healthbot.cursor()
+    mycursor.execute(sql, val)
+    healthbot.commit()
+    await ctx.send("Trigger created successfully.")'''
+    left = False
+    for x in range(len(arg)):
+        if arg[x] == " ":
+            left = arg[:x]
+            right = arg[x+1:]
+            break
+    if not(left):
+        await ctx.send("Invalid trigger.")
 
 @bot.command()
+@commands.has_any_role("THE VIBEGUARD", "ADMIN")
 async def deletetrigger(ctx, *, arg):
-    if aux.checkmod(bot,ctx):
-        '''mycursor = healthbot.cursor()
-        sql = "DELETE FROM `Trigger` WHERE name = '" + arg + "'"
-        mycursor.execute(sql)
-        healthbot.commit()
-        await ctx.channel.send("Trigger deleted successfully.")'''
-        # temporary solution #
+    '''mycursor = healthbot.cursor()
+    sql = "DELETE FROM `Trigger` WHERE name = '" + arg + "'"
+    mycursor.execute(sql)
+    healthbot.commit()
+    await ctx.send("Trigger deleted successfully.")'''
 
 @bot.command()
 async def timeout(ctx, *, arg):
     seconds = arg
     suffix = seconds[:-1]
     secondsint = int(seconds[:-1])
-    healthguild = bot.get_guild(688206199992483851)
-    muted = healthguild.get_role(716467961631866922)
+    muted = ctx.guild.get_role(int(config['MUTED_ROLE_ID']))
     timestr,secondsint = aux.timestrbuilder(seconds,secondsint,suffix)
     embed=discord.Embed(title=" ", color=0xff0000)
     embed.set_author(name="Enjoy your timeout. (" + timestr + ")")
     await ctx.author.add_roles(muted,reason="Self-requested timeout", atomic=True)
-    await ctx.channel.send(embed=embed)
+    await ctx.send(embed=embed)
     await asyncio.sleep(secondsint)
     await ctx.author.remove_roles(muted, reason="Timout ended", atomic=True)
     await ctx.author.send("Your timeout in HEALTHcord has ended.")
 
-
-## temporary commands (prob) ##
+club_channels = [config['MOVIE_CLUB_ID'],config['BOOK_CLUB_ID'],config['ANIME_CLUB_ID'],config['MUSIC_CLUB_ID'],config['ART_CLUB_ID'],config['GAMING_CLUB_ID'],config['FOOD_CLUB_ID'], config['HEALTH_BOYZ_ID']]
 @bot.command()
-async def riff(ctx):
-    embed=discord.Embed(title=" ", description="https://open.spotify.com/playlist/4rjHTKoc6UW6vZ3OtsRskC?si=OusEsIvdQPaHLnY2ae1bjw \n\nhttps://music.apple.com/us/playlist/tricils-riff-of-the-week/pl.u-GgAxqabhZxeVBG", color=0xff0000)
-    embed.set_author(name="TRICIL'S RIFF OF THE WEEK PLAYLISTS! UPDATED EVERY WEDNESDAY!")
-    embed.set_thumbnail(url="https://cdn.discordapp.com/emojis/732593127352696942.png")
-    await ctx.channel.send(embed=embed)
+@commands.has_any_role("CLUB LEADER", "THE VIBEGUARD", "ADMIN", "WARBOSS")
+async def pin(ctx):
+    if str(ctx.channel.id) in club_channels:
+        if not(ctx.message.reference):
+            await ctx.reply("Reply to the message you want to pin.")
+        else:
+            message_to_pin = await ctx.channel.fetch_message(ctx.message.reference.message_id)
+            await message_to_pin.pin(reason="Pinned by " + ctx.author.name)
+            await ctx.message.delete()
+    elif aux.checkmod(ctx):
+        if not(ctx.message.reference):
+            await ctx.reply("Reply to the message you want to pin.")
+        else:
+            message_to_pin = await ctx.channel.fetch_message(ctx.message.reference.message_id)
+            await message_to_pin.pin(reason="Pinned by " + ctx.author.name)
+            await ctx.message.delete()
 
-
-
-def album(m,mentions):
-    albuml = []
-    m = "".join(m.lower().split()) #remove spaces, all lowercase, makes it easier for search
-
-    health = (["heaven", "girlattorney", "triceratops", "crimewave", "courtship", "zoothorns", "tabloidsores", "glitterpills", "perfectskin", "losttime","//m\\\\"],755047461734580306)
-    getcolor = (["getcolor", "inheat","dieslow","nicegirls","death+","beforetigers","severin","eatflesh","wearewater","inviolet"],755047462640681030)
-    deathmagic = (["deathmagic","victim","stonefist","mentoday","fleshworld","courtshipii","darkenough","salvia","newcoke","lalooks","l.a.looks","hurtyourself","drugsexist"],755047460019372062)
-    vol4 = (["vol4","vol.4","psychonaut","feelnothing","godbotherer","blackstatic","lossdeluxe","nc-17","nc17","themessage","ratwars","strangedays","wrongbag","slavesoffear","decimation"],755047461944557618)
-    disco4 = (["disco4","cyberpunk2020","cyberpunk2.0.0.0","cyberpunk2.0.0.0.","body/prison","bodyprison","powerfantasy","judgmentnight","innocence","fullofhealth","colors","hateyou","dflooks","d.f.looks","massgrave","deliciousape","hardtobeagod"],755050227215630426)
-    disco3 = (["disco3","euphoria","slumlord","crusher"],755050414008696852)
-    disco2 = (["disco2","usaboys","u.s.a.boys"],755050225751556117)
-    mp3 = (["tears"],755047462896533605)
-    payne = (["pain", "<:max:697638034937479239>"],697638034937479239)
-    powercaco = (["powerfantasy"],766716666540326932)
-    ping = (["774402228084670515"],788902728658452481)
-
-    cacoheart = ([("good","love","based","thank","great","amazing","well"),("bad","racist","racism","cringe","dumb","idiot","stupid","bug","n'twork","notwork","suck","shit","poo","bitch")],804113756622684220,[697627002202750976,708429172737048606,735209358379450471,736196814654668830,"notfunny"])
-
-    
-    albums = [health,getcolor,deathmagic,vol4,disco2,disco3,disco4,mp3,payne,powercaco]
-
-    for x in albums:
-        for y in x[0]:
-            if y in m:
-                albuml.append(x[1])
-                break
-
-    if "bot" in m:
-        flag = True
-        for x in cacoheart[0][0]:
-            if x in m:
-                albuml.append(cacoheart[1])
-                flag = False
-                break
-        if flag:
-            for x in cacoheart[0][1]:
-                if x in m:
-                    emojiID = random.choice(cacoheart[2])
-                    if emojiID == "notfunny":
-                        albuml.append(733376041816424489)
-                        albuml.append(733376041686532127)
-                        break
-                    else:
-                        albuml.append(emojiID)
-                        break
-
-    for x in mentions:
-        if x.id == 774402228084670515:
-            albuml.append(788902728658452481)
-            break
-
-
-    return albuml    
-
-
+@bot.command()
+@commands.has_any_role("CLUB LEADER", "THE VIBEGUARD", "ADMIN", "WARBOSS")
+async def unpin(ctx):
+    if str(ctx.channel.id) in club_channels:
+        if not(ctx.message.reference):
+            await ctx.reply("Reply to the message you want to pin.")
+        else:
+            message_to_unpin = await ctx.channel.fetch_message(ctx.message.reference.message_id)
+            pinned_messages = await ctx.channel.pins()
+            for message in pinned_messages:
+                if message.id == message_to_unpin.id:
+                    await message.unpin(reason="Unpinned by " + ctx.author.name)
+                    await ctx.message.delete()
+                    break
+    elif aux.checkmod(ctx):
+        if not(ctx.message.reference):
+            await ctx.reply("Reply to the message you want to pin.")
+        else:
+            message_to_unpin = await ctx.channel.fetch_message(ctx.message.reference.message_id)
+            pinned_messages = await ctx.channel.pins()
+            for message in pinned_messages:
+                if message.id == message_to_unpin.id:
+                    await message.unpin(reason="Unpinned by " + ctx.author.name)
+                    await ctx.message.delete()
+                    break
 
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
         return
-  
+
     if message.content.startswith("!"): #recognising a command
         #trigger,e = checkdb(message.content[1:])
         #if trigger:
@@ -433,29 +476,32 @@ async def on_message(message):
             print(message.content + " is an invalid command.")
         return
 
-    if message.author.id == 225522547154747392: #replacing the stock bot messages with HEALTH BOT messages
-        embedc=discord.Embed(title= "STOCKS", description= message.embeds[0].description, color=0xff0000)
-        embedc.set_footer(text= message.embeds[0].footer.text)
-        embedc.add_field(name="​", value="[Command Help](https://stockbot.us/c/?m=1&g=1#statistics)", inline=False)
-        await message.channel.send(embed= embedc)
-        await message.delete()
+    if not(aux.checkmod(message)):
+        if str(message.channel.id) == config['ART_CLUB_ID']:
+            flag = True
+            for role in message.author.roles:
+                if role.name == "CLUB LEADER":
+                    flag = False
+                    break
+            if flag and message.content and not(message.attachments) and not(aux.check_url(message.content)):
+                await message.delete()
+        elif str(message.channel.id) in [config['WHOLESOME_MEMES_ID'], config['ART_SHARE_ID']]:
+            if message.content and not(message.attachments) and not(aux.check_url(message.content)):
+                await message.delete()
 
-    if message.content.lower() in ["musik make love to <@774402228084670515>","musik make love to health bot","musik make love to health :: bot"]:
-        time.sleep(1)
+    if message.content.lower() in ["musik make love to " + bot.user.mention,"musik make love to health bot","musik make love to health :: bot"]:
+        await asyncio.sleep(1)
         o = ["Oh no... not me.","Why would anyone want this","What is wrong with you?","No no no no no no"]
         await message.channel.send(random.choice(o))
 
-    
+
     if message.channel.id != 707011962898481254: #we dont want this on #on-the-real certainly
-        emojialbum = album(message.content,message.mentions) #finding if there is a mention to a HEALTH album in a message and reacting with the album cover
+        emojialbum = aux.album(message.content,message.mentions) #finding if there is a mention to a HEALTH album in a message and reacting with the album cover
         if emojialbum:
             for x in emojialbum:
                 emoji = bot.get_emoji(x)
                 await message.add_reaction(emoji)
 
-    #if message.content == "health joao qwerty":
-    #    await message.channel.send("nothing to test")
-    
 
 ## MISC EVENTS ##
 
@@ -465,48 +511,60 @@ async def on_message_edit(before,after):
         return
     if before.content != after.content:
         userstr = before.author.name + "#" + before.author.discriminator
-        avatarurl = "https://cdn.discordapp.com/avatars/" + str(before.author.id) + "/" + before.author.avatar + ".webp"
+
+        if before.author.avatar:
+            avatarurl = "https://cdn.discordapp.com/avatars/" + str(before.author.id) + "/" + before.author.avatar + ".webp"
+        else:
+            avatarurl = "https://cdn.discordapp.com/avatars/774402228084670515/5ef539d5f3e8d576c4854768727bc75a.png"
+
         embed=discord.Embed(title="Message edited in #" + before.channel.name, description= "**Before:** " + before.content + "\n**After:** " + after.content,color=0x45b6fe)
         embed.set_author(name=userstr, icon_url=avatarurl)
-        await bot.get_channel(735169441729478717).send(embed= embed)
+        await bot.get_channel(int(config['BIG_BROTHER_ID'])).send(embed= embed)
+
+    if after.channel.id == int(config['WHOLESOME_MEMES_ID']) or after.channel.id ==int (config['ART_SHARE_ID']):
+        if after.content and not(after.attachments) and not(aux.check_url(after.content)):
+            await after.delete()
 
 @bot.event
 async def on_message_delete(message):
-    if message.author.id in [372175794895585280,225522547154747392]: #its the haikubot and stock bot's ID, its kinda useless showing when these are deleted
+    if message.author.id in [372175794895585280,225522547154747392]: #its the haikubot and stock bot's ID, its useless showing when these are deleted
         return
     userstr = message.author.name + "#" + message.author.discriminator
-    avatarurl = "https://cdn.discordapp.com/avatars/" + str(message.author.id) + "/" + message.author.avatar + ".webp"
+
+    if message.author.avatar:
+        avatarurl = "https://cdn.discordapp.com/avatars/" + str(message.author.id) + "/" + message.author.avatar + ".webp"
+    else:
+        avatarurl = "https://cdn.discordapp.com/avatars/774402228084670515/5ef539d5f3e8d576c4854768727bc75a.png"
+
     if message.content:
         description = message.content
     else:
         description = "*[This message only contained attachements.]*"
     embed=discord.Embed(title="Message deleted in #" + message.channel.name, description= description,color=0xff0000)
     embed.set_author(name=userstr, icon_url=avatarurl)
-    await bot.get_channel(735169441729478717).send(embed= embed)
+    await bot.get_channel(int(config['BIG_BROTHER_ID'])).send(embed= embed)
 
 @bot.event
-async def on_member_ban(healthcord,user):
-    logs = await healthcord.audit_logs(limit=1, action=discord.AuditLogAction.ban).flatten()
+async def on_member_ban(guild,user):
+    logs = await guild.audit_logs(limit=1, action=discord.AuditLogAction.ban).flatten()
     logs = logs[0]
     if not(logs.reason):
-        logs.reason = "No reason was specified."
-    if "​​​" in logs.reason:
-        return
-    modlog = bot.get_channel(733746271684263936)
-    embed=discord.Embed(title= "manual ban", description= "**Offender:** " + user.mention + "\n**Reason:** " + logs.reason + "\n**Responsible moderator: **" + logs.user.mention,color= 0xff0000)
-    await modlog.send(embed= embed)
+        logs.reason = "No reason specified."
+    if logs.user.id != bot.user.id:
+        modlog = bot.get_channel(int(config['MOD_LOG_ID']))
+        embed=discord.Embed(title= "manual ban", description= "**Offender:** " + user.mention + "\n**Reason:** " + logs.reason + "\n**Responsible moderator: **" + logs.user.mention,color= 0xff0000)
+
 
 @bot.event
-async def on_member_unban(healthcord,user):
-    logs = await healthcord.audit_logs(limit=1, action=discord.AuditLogAction.unban).flatten()
+async def on_member_unban(guild, user):
+    logs = await guild.audit_logs(limit=1, action=discord.AuditLogAction.ban).flatten()
     logs = logs[0]
     if not(logs.reason):
-        logs.reason = "No reason was specified."
-    if "​​​" in logs.reason:
-        return
-    modlog = bot.get_channel(733746271684263936)
-    embed = discord.Embed(title= "manual unban", description= "**Offender:** " + user.mention + "\n**Responsible moderator: **" + logs.user.mention, color= 0xff0000)
-    await modlog.send(embed= embed)
+        logs.reason = "No reason specified."
+    if logs.user.id != bot.user.id:
+        modlog = bot.get_channel(int(config['MOD_LOG_ID']))
+        embed = discord.Embed(title= "manual unban", description= "**Offender:** " + user.mention + "\n**Responsible moderator: **" + logs.user.mention, color= 0xff0000)
+        await modlog.send(embed= embed)
 
 
 invitemessage = {}
@@ -514,7 +572,7 @@ invitemessage = {}
 @bot.event
 async def on_invite_create(invite):
     global invitemessage
-    modlog = bot.get_channel(733746271684263936)
+    modlog = bot.get_channel(int(config['MOD_LOG_ID']))
     user = invite.inviter
     userstr = user.name + "#" + user.discriminator
     if invite.max_uses:
@@ -533,31 +591,197 @@ async def on_invite_create(invite):
     await message.add_reaction("❌")
     invitemessage[message] = invite
 
+async def support_check(ids, reaction, user):
+    if reaction.message.id == ids[0]:
+        await reaction.remove(user)
+        return reaction.emoji == "📩"
+
+async def create_ticket_channel(init_message,name,user):
+    global open_tickets
+    global open_tickets_id
+    merch_support_role = user.guild.get_role(int(config['MERCH_SUPPORT_ID']))
+    mod_role = user.guild.get_role(int(config['MOD_ROLE_ID']))
+    overwrites = {user.guild.default_role: discord.PermissionOverwrite(read_messages=False), user: discord.PermissionOverwrite(read_messages=True), mod_role:discord.PermissionOverwrite(read_messages=True)}
+    if name == "merch-ticket":
+        overwrites[merch_support_role] = discord.PermissionOverwrite(read_messages=True)
+
+    open_ticket_cat = user.guild.get_channel(int(config['OPEN_TICKET_CAT_ID']))
+    channel = await user.guild.create_text_channel(name + "-" + user.name, category= open_ticket_cat, overwrites= overwrites)
+    message = await channel.send(init_message)
+    await message.add_reaction("🔒")
+    open_tickets[message] = (user,name)
+    open_tickets_id.add(message.id)
+
+
+curated_messages = set()
+
 @bot.event
-async def on_reaction_add(reaction, user):
-    global invitemessage
-    if reaction.message in invitemessage and reaction.emoji == "❌" and user != bot.user:
-        invite = invitemessage[reaction.message]
-        if invite.max_uses:
-            maxuses = " out of " + str(invite.max_uses)
-        else:
-            maxuses =  ""
-        embed = discord.Embed(title= " ", description= "**Invite deleted** \n**Channel: **" + invite.channel.mention + "\n**Uses:** " + str(invite.uses) + maxuses, color= 0xfffcbb)
-        embed.set_author(name="New invite (deleted)")
-        await invite.delete()
-        await reaction.message.edit(embed = embed)
+async def on_raw_reaction_add(payload):
+    if payload.user_id != bot.user.id:
+        # tickets
+        global mod_support
+        global merch_support
+        global roles_support
+        global open_tickets
+        global open_tickets_id
+        global closed_tickets
+        global closed_tickets_id
+        if payload.channel_id in [mod_support[1],merch_support[1],roles_support[1]] or payload.message_id in open_tickets_id or payload.message_id in closed_tickets_id:
+            # converting payload to usable variables
+            healthcord = bot.get_guild(payload.guild_id)
+            user = healthcord.get_member(payload.user_id)
+            channel = healthcord.get_channel(payload.channel_id)
+            message = await channel.fetch_message(payload.message_id)
+            reaction = None
+            for reaction_temp in message.reactions:
+                if str(reaction_temp.emoji) == str(payload.emoji):
+                    reaction = reaction_temp
+                    break
+            init_message = "Hello! " + user.mention
+            if await support_check(mod_support, reaction, user):
+                for ticket_message,ticket_info in open_tickets.items():
+                    if ticket_info == (user,"general-ticket"):
+                        await ticket_message.channel.send(user.mention + " hello! You still have this opened ticket. A mod can assist you on whatever else you might need.")
+                        return
+                init_message += "\nWhat's the issue?\n\n``(React to this message with 🔒 to close this ticket.)``"
+                await create_ticket_channel(init_message,"general-ticket",user)
+            elif await support_check(merch_support, reaction, user):
+                for ticket_message,ticket_info in open_tickets.items():
+                    if ticket_info == (user,"merch-ticket"):
+                        await ticket_message.channel.send(user.mention + " hello! You still have this opened ticket. A mod can assist you on whatever else you might need.")
+                        return
+                init_message += "\nDo you have an issue with a merch order?\n" + user.guild.get_role(int(config['MERCH_SUPPORT_ID'])).mention +" will get back to you shortly.\n\n``(React to this message with 🔒 to close this ticket.)``"
+                await create_ticket_channel(init_message,"merch-ticket",user)
+            elif await support_check(roles_support, reaction, user):
+                for ticket_message,ticket_info in open_tickets.items():
+                    if ticket_info == (user,"roles-ticket"):
+                        await ticket_message.channel.send(user.mention + " hello! You still have this opened ticket. A mod can assist you on whatever else you might need.")
+                        return
+                init_message += "\nAre you missing some roles?\n\n``(React to this message with 🔒 to close this ticket.)``"
+                await create_ticket_channel(init_message,"roles-ticket",user)
+
+            if message in open_tickets and reaction.emoji == "🔒":
+                await reaction.remove(user) 
+                closed_ticket_cat = user.guild.get_channel(int(config['CLOSED_TICKET_CAT_ID']))
+                await reaction.message.channel.move(category= closed_ticket_cat, end= True)
+                mod_role = user.guild.get_role(int(config['MOD_ROLE_ID']))
+                overwrites = {user.guild.default_role: discord.PermissionOverwrite(read_messages=False), open_tickets[message][0]: discord.PermissionOverwrite(read_messages=False), mod_role: discord.PermissionOverwrite(read_messages=True)}
+                if "merch" in reaction.message.channel.name:
+                    overwrites[user.guild.get_role(int(config['MERCH_SUPPORT_ID']))] = discord.PermissionOverwrite(read_messages=True)
+                await reaction.message.channel.edit(overwrites= overwrites)
+                new_message = await reaction.message.channel.send("``React to this message with 🔓 to re-open this ticket.``")
+                await new_message.add_reaction("🔓")
+                closed_tickets[new_message] = open_tickets[message]
+                closed_tickets_id.add(new_message.id)
+                open_tickets.pop(message)
+                open_tickets_id.remove(message.id)
+
+            elif message in closed_tickets and reaction.emoji == "🔓":
+                await reaction.remove(user)
+                open_ticket_cat = user.guild.get_channel(int(config['OPEN_TICKET_CAT_ID']))
+                await reaction.message.channel.move(category= open_ticket_cat, end= True)
+                overwrites = {user.guild.default_role: discord.PermissionOverwrite(read_messages=False), closed_tickets[message][0]: discord.PermissionOverwrite(read_messages=True)}
+                if "merch" in reaction.message.channel.name:
+                    overwrites[user.guild.get_role(int(config['MERCH_SUPPORT_ID']))] = discord.PermissionOverwrite(read_messages=True)
+                await reaction.message.channel.edit(overwrites= overwrites)
+                new_message = await reaction.message.channel.send("``React to this message with 🔒 to close this ticket.``")
+                await new_message.add_reaction("🔒")
+                open_tickets[new_message] = closed_tickets[message]
+                open_tickets_id.add(new_message.id)
+                closed_tickets.pop(message)
+                closed_tickets_id.remove(message.id)
+
+        # mod-log invites
+        if payload.channel_id == int(config['MOD_LOG_ID']):
+            global invitemessage
+            modlog = bot.get_channel(payload.channel_id)
+            message = await modlog.fetch_message(payload.message_id)
+            if message in invitemessage and payload.emoji == "❌":
+                invite = invitemessage[message]
+                if invite.max_uses:
+                    maxuses = " out of " + str(invite.max_uses)
+                else:
+                    maxuses =  ""
+                embed = discord.Embed(title= " ", description= "**Invite deleted** \n**Channel: **" + invite.channel.mention + "\n**Uses:** " + str(invite.uses) + maxuses, color= 0xfffcbb)
+                embed.set_author(name="New invite (deleted)")
+                await invite.delete()
+                await message.edit(embed = embed)
+
+    # curation
+    global curated_messages
+    if payload.emoji != str(payload.emoji) and (payload.emoji.name == "cacostar" or payload.emoji.name == "russtar") and payload.message_id not in curated_messages:
+        healthcord = bot.get_guild(payload.guild_id)
+        channel = healthcord.get_channel(payload.channel_id)
+        message = await channel.fetch_message(payload.message_id)
+        reaction = None
+        for reaction_temp in message.reactions:
+            if str(reaction_temp.emoji) == str(payload.emoji):
+                reaction = reaction_temp
+                break
+        if reaction.count == 5:
+            curated_messages.add(payload.message_id)
+            serverid = str(message.guild.id)
+            channelid = str(message.channel.id)
+            messageid = str(message.id)
+            messageurl = "https://discord.com/channels/" + serverid + "/" + channelid + "/" + messageid
+
+            if reaction.message.author.avatar:
+                avatarurl = "https://cdn.discordapp.com/avatars/" + str(message.author.id) + "/" + message.author.avatar + ".webp"
+            else:
+                avatarurl = "https://cdn.discordapp.com/avatars/774402228084670515/5ef539d5f3e8d576c4854768727bc75a.png"
+
+            if message.embeds and message.author.id == 372175794895585280: # haiku bot ID
+                description = message.embeds[0].description.replace("\n\n","\n")
+                embed = discord.Embed(description= description, color=0xff0000)
+                embed.set_author(name= "Haiku by " + message.embeds[0].footer.text[2:])
+            else:
+                embed = discord.Embed(description= message.content, color=0xff0000)
+                embed.set_author(name= message.author.display_name, icon_url=avatarurl)
+                
+            if message.attachments:
+                embed.set_image(url= message.attachments[0].url)
+            
+            embed.add_field(name="#" + message.channel.name, value="[Jump to message!](" + messageurl + ")", inline=False)
+            
+            if message.reference:
+                replied_message = await message.channel.fetch_message(message.reference.message_id) # getting the message it's being replied to
+                
+                if replied_message.author.avatar:
+                    replied_avatarurl = "https://cdn.discordapp.com/avatars/" + str(replied_message.author.id) + "/" + replied_message.author.avatar + ".webp"
+                else:
+                    replied_avatarurl = "https://cdn.discordapp.com/avatars/774402228084670515/5ef539d5f3e8d576c4854768727bc75a.png"
+
+                embed.add_field(name="──────", value= "*This was a reply to:*")
+                embed.set_footer(text=replied_message.author.display_name + "\n" + replied_message.content, icon_url=replied_avatarurl)
+
+            else:
+                embed.set_footer(text= str(message.created_at)[:-10] + " UTC")
+            
+            healthcurated = bot.get_channel(int(config['CURATION_CHANNEL_ID']))
+            await healthcurated.send(embed= embed)
+
+@bot.event
+async def on_member_join(member):
+    if member.avatar:
+        avatarurl = "https://cdn.discordapp.com/avatars/" + str(member.id) + "/" + member.avatar + ".webp"
+    else:
+        avatarurl = "https://cdn.discordapp.com/avatars/774402228084670515/5ef539d5f3e8d576c4854768727bc75a.png"
+    memberstr = member.name + "#" + member.discriminator
+    embed = discord.Embed(title=" ", description="User ID: " + str(member.id), color=0xff0000)
+    embed.set_author(name= memberstr + " has joined the server.", icon_url= avatarurl)
+    await bot.get_channel(int(config['NEW_USERS_ID'])).send(embed= embed)
 
 @bot.event
 async def on_member_remove(member):
-    modlog = bot.get_channel(733746271684263936)
+    now = datetime.now()
+    modlog = bot.get_channel(int(config['MOD_LOG_ID']))
     memberstr = member.name + "#" + member.discriminator
-    timeonserver = datetime.now() - member.joined_at
-    healthcord = bot.get_guild(688206199992483851)
-    logs = await healthcord.audit_logs(limit=1, action=discord.AuditLogAction.kick).flatten()
+    timeonserver = now - member.joined_at
+    logs = await member.guild.audit_logs(limit=1, action=discord.AuditLogAction.kick).flatten()
     logs = logs[0]
     if not(logs.reason):
         logs.reason = "No reason specified."
-    if "​​​" not in logs.reason and member.id == logs.target.id:
+    if logs.user.id != bot.user.id and logs.target.id == member.id:
         embed=discord.Embed(title= "manual kick", description= "**Offender:** " + member.mention + "\n**Reason:** " + logs.reason + "\n**Responsible moderator: **" + logs.user.mention,color= 0xff0000)
         await modlog.send(embed= embed)
 
@@ -576,6 +800,7 @@ async def on_member_remove(member):
             else:
                 timestrAux = str(timeonserver.days) + " days, "
                 timestr += timestrAux
+
     if timeonserver.seconds:
         if timeonserver.seconds / 60 >= 60:
             if timeonserver.seconds / 3600 < 2:
@@ -636,7 +861,7 @@ async def on_member_remove(member):
         timestr = timestr[:-2] + " ago."
     else:
         timestr += " ago."
-                
+
     rolestr = ""
     for role in member.roles[1:]:
         rolestr += role.mention + ", "
@@ -648,11 +873,22 @@ async def on_member_remove(member):
         avatarurl = "https://cdn.discordapp.com/avatars/" + str(member.id) + "/" + member.avatar + ".webp"
     else:
         avatarurl = "https://cdn.discordapp.com/avatars/774402228084670515/5ef539d5f3e8d576c4854768727bc75a.png"
-    
+
     embed = discord.Embed(title = "Member left", description = member.mention + timestr + "\n**Roles:** " + rolestr, color=0xff0000)
     embed.set_author(name=memberstr, icon_url=avatarurl)
     await modlog.send(embed= embed)
-    
+
+@bot.event
+async def on_member_update(before, after):
+    if after.id == 697891299080142919 and before.status != after.status:
+        embed = discord.Embed(color=0xff0000)
+        if after.status == discord.Status.online:
+            embed.set_author(name="A wild BEEJ appeared!")
+            await after.guild.get_channel(int(config['GENERAL_ID'])).send(embed= embed)
+        elif after.status == discord.Status.offline:
+            embed.set_author(name="BEEJ has fled.")
+            await after.guild.get_channel(int(config['GENERAL_ID'])).send(embed= embed)
 
 
-bot.run(bottoken.token)
+
+bot.run(config['BOT_TOKEN'])
