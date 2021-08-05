@@ -91,7 +91,7 @@ def timestrbuilder(seconds, secondsint, suffix):
     return suffix,secondsint
 
 def remove_spoiler(m):
-    return re.sub(r"(\|\|[^\|\n]*\|\|)", "", m, 0, re.MULTILINE)
+     return re.sub(r"(\|\|[^\|]*\|\|)", "", m)
 
 def album(m,mentions):
     albuml = []
