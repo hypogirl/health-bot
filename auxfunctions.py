@@ -1,5 +1,6 @@
 import discord
 import random
+import re
 from dotenv import dotenv_values
 from urllib.parse import urlparse
 
@@ -22,7 +23,7 @@ def getvars(bot, ctx, arg): # gets the user, reason and member for the mod funct
     member_id = int(member_id)
     reason = arg[x+2:]
     member = ctx.guild.get_member(member_id)
-    
+
     return reason, member
 
 def modactions(ctx, reason, member, action): # writes the embed and dm for the mod functions
@@ -90,27 +91,7 @@ def timestrbuilder(seconds, secondsint, suffix):
     return suffix,secondsint
 
 def remove_spoiler(m):
-    c_list = [(0,0)]
-    c = 0
-
-    while True:
-        for c in range(c,len(m)):
-            if m[c:c+2] == "||":
-                c_list.append((c,c+2))
-                break
-        c += 2
-        if c >= len(m) - 1:
-            break
-
-    m_removed = str()
-    for c in range(0,len(c_list)-1,2):
-        m_removed += m[c_list[c][1]:c_list[c+1][0]]
-    if len(c_list) % 2:
-        m_removed += m[c_list[-1][1]:]
-    else:
-        m_removed += m[c_list[-1][1]-2:]
-    
-    return m_removed
+    return re.sub(r"(\|\|[^\|\n]*\|\|)", "", m, 0, re.MULTILINE)
 
 def album(m,mentions):
     albuml = []
