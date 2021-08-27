@@ -25,6 +25,7 @@ open_tickets_id = set()
 closed_tickets_id = set()
 
 mod_team = [int(config['ADMIN_ROLE_ID']), int(config['MOD_ROLE_ID'])]
+club_channels = [config['MOVIE_CLUB_ID'],config['BOOK_CLUB_ID'],config['ANIME_CLUB_ID'],config['MUSIC_CLUB_ID'],config['ART_CLUB_ID'],config['GAMING_CLUB_ID'],config['FOOD_CLUB_ID'], config['HEALTH_BOYZ_ID']]
 
 @bot.event
 async def on_ready():
@@ -411,9 +412,8 @@ async def timeout(ctx, *, arg):
     await ctx.author.remove_roles(muted, reason="Timout ended", atomic=True)
     await ctx.author.send("Your timeout in HEALTHcord has ended.")
 
-club_channels = [config['MOVIE_CLUB_ID'],config['BOOK_CLUB_ID'],config['ANIME_CLUB_ID'],config['MUSIC_CLUB_ID'],config['ART_CLUB_ID'],config['GAMING_CLUB_ID'],config['FOOD_CLUB_ID'], config['HEALTH_BOYZ_ID']]
 @bot.command()
-@commands.has_any_role("CLUB LEADER", *mod_team, "WARBOSS")
+@commands.has_any_role(config['CLUB_LEADER_ID'], *mod_team, config['WARBOSS_ID'])
 async def pin(ctx):
     if str(ctx.channel.id) in club_channels:
         if not(ctx.message.reference):
@@ -431,7 +431,7 @@ async def pin(ctx):
             await ctx.message.delete()
 
 @bot.command()
-@commands.has_any_role("CLUB LEADER", *mod_team, "WARBOSS")
+@commands.has_any_role(config['CLUB_LEADER_ID'], *mod_team, config['WARBOSS_ID'])
 async def unpin(ctx):
     if str(ctx.channel.id) in club_channels:
         if not(ctx.message.reference):
