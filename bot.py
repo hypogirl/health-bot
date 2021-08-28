@@ -661,7 +661,7 @@ async def on_raw_reaction_add(payload):
                 await create_ticket_channel(init_message,"roles-ticket",user)
 
             if message in open_tickets and reaction.emoji == "🔒":
-                await reaction.remove(user) 
+                await reaction.remove(user)
                 closed_ticket_cat = user.guild.get_channel(int(config['CLOSED_TICKET_CAT_ID']))
                 await reaction.message.channel.move(category= closed_ticket_cat, end= True)
                 mod_role = user.guild.get_role(int(config['MOD_ROLE_ID']))
@@ -737,15 +737,15 @@ async def on_raw_reaction_add(payload):
             else:
                 embed = discord.Embed(description= message.content, color=0xff0000)
                 embed.set_author(name= message.author.display_name, icon_url=avatarurl)
-                
+
             if message.attachments:
                 embed.set_image(url= message.attachments[0].url)
-            
+
             embed.add_field(name="#" + message.channel.name, value="[Jump to message!](" + messageurl + ")", inline=False)
-            
+
             if message.reference:
                 replied_message = await message.channel.fetch_message(message.reference.message_id) # getting the message it's being replied to
-                
+
                 if replied_message.author.avatar:
                     replied_avatarurl = "https://cdn.discordapp.com/avatars/" + str(replied_message.author.id) + "/" + replied_message.author.avatar + ".webp"
                 else:
@@ -756,7 +756,7 @@ async def on_raw_reaction_add(payload):
 
             else:
                 embed.set_footer(text= str(message.created_at)[:-10] + " UTC")
-            
+
             healthcurated = bot.get_channel(int(config['CURATION_CHANNEL_ID']))
             await healthcurated.send(embed= embed)
 
@@ -778,12 +778,13 @@ async def on_member_remove(member):
     memberstr = member.name + "#" + member.discriminator
     timeonserver = now - member.joined_at
     logs = await member.guild.audit_logs(limit=1, action=discord.AuditLogAction.kick).flatten()
-    logs = logs[0]
-    if not(logs.reason):
-        logs.reason = "No reason specified."
-    if logs.user.id != bot.user.id and logs.target.id == member.id:
-        embed=discord.Embed(title= "manual kick", description= "**Offender:** " + member.mention + "\n**Reason:** " + logs.reason + "\n**Responsible moderator: **" + logs.user.mention,color= 0xff0000)
-        await modlog.send(embed= embed)
+    log = logs[0] if len(logs) > 0 else False
+    if log:
+        if not(log.reason):
+            log.reason = "No reason specified."
+        if log.user.id != bot.user.id and log.target.id == member.id:
+            embed=discord.Embed(title= "manual kick", description= "**Offender:** " + member.mention + "\n**Reason:** " + log.reason + "\n**Responsible moderator: **" + log.user.mention,color= 0xff0000)
+            await modlog.send(embed= embed)
 
     timestr = " joined "
     if timeonserver.days:
