@@ -24,6 +24,9 @@ closed_tickets = {}
 open_tickets_id = set()
 closed_tickets_id = set()
 
+mod_team = [int(config['ADMIN_ROLE_ID']), int(config['MOD_ROLE_ID'])]
+club_channels = [config['MOVIE_CLUB_ID'],config['BOOK_CLUB_ID'],config['ANIME_CLUB_ID'],config['MUSIC_CLUB_ID'],config['ART_CLUB_ID'],config['GAMING_CLUB_ID'],config['FOOD_CLUB_ID'], config['HEALTH_BOYZ_ID']]
+
 @bot.event
 async def on_ready():
     print('HEALTHbot is online')
@@ -43,9 +46,9 @@ async def help(ctx, *arg):
         helpstr += "\n\n**!purge** [no. of messages]\n**!purgeuser (unstable for now)** [mention user] [no. of messages]\n**!spam** [no. of messages]\n**!motd** [mention user]\n\n**!createtrigger (inactive)** [name] [content]\n**!deletetrigger (inactive)** [name]"
         embed=discord.Embed(title="Help",description=helpstr,color=0xff0000)
     elif arg == "kick":
-        embed=discord.Embed(title="!kick",description= "kicks member from HEALTHcord and stores information - including the reason for the kick - in the <#733746271684263936>. They might rejoin the server whenever they want.")
+        embed=discord.Embed(title="!kick",description= "kicks member from HEALTHcord and stores information - including the reason for the kick - in the <#%s>. They might rejoin the server whenever they want." % config['MOD_LOG_ID'])
     elif arg == "ban":
-        embed=discord.Embed(title="!ban",description= "bans member from HEALTHcord and stores information - including the reason for the ban - in the <#733746271684263936>.")
+        embed=discord.Embed(title="!ban",description= "bans member from HEALTHcord and stores information - including the reason for the ban - in the <#%s>." % config['MOD_LOG_ID'])
     else:
         await ctx.author.send(arg + " is not a valid command.")
         return
@@ -79,7 +82,7 @@ def convertembed(t):
 ## MOD COMMANDS ##
 
 @bot.command()
-@commands.has_any_role("THE VIBEGUARD", "ADMIN")
+@commands.has_any_role(*mod_team)
 async def warn(ctx, *, arg):
     reason, member = aux.getvars(bot, ctx, arg)
     if not(member):
@@ -98,7 +101,7 @@ async def warn(ctx, *, arg):
         await ctx.send("You cannot warn this user.")
 
 @bot.command()
-@commands.has_any_role("THE VIBEGUARD", "ADMIN")
+@commands.has_any_role(*mod_team)
 async def ban(ctx, *, arg):
     reason, member = aux.getvars(bot, ctx, arg)
     if not(member):
@@ -121,7 +124,7 @@ async def ban(ctx, *, arg):
         await ctx.send("You cannot ban this user.")
 
 @bot.command()
-@commands.has_any_role("THE VIBEGUARD", "ADMIN")
+@commands.has_any_role(*mod_team)
 async def unban(ctx, *, arg):
     reason, member = aux.getvars(bot, ctx, arg)
     if not(member):
@@ -144,7 +147,7 @@ async def unban(ctx, *, arg):
         await ctx.send("You cannot ban this user.")
 
 @bot.command()
-@commands.has_any_role("THE VIBEGUARD", "ADMIN")
+@commands.has_any_role(*mod_team)
 async def kick(ctx, *, arg):
     reason, member = aux.getvars(bot, ctx, arg)
     if not(member):
@@ -164,7 +167,7 @@ async def kick(ctx, *, arg):
         await ctx.send("You cannot kick this user.")
 
 @bot.command()
-@commands.has_any_role("THE VIBEGUARD", "ADMIN")
+@commands.has_any_role(*mod_team)
 async def mute(ctx, *, arg):
     reason, member = aux.getvars(bot, ctx, arg)
 
@@ -206,7 +209,7 @@ async def mute(ctx, *, arg):
         await ctx.send("You cannot mute this user.")
 
 @bot.command()
-@commands.has_any_role("THE VIBEGUARD", "ADMIN")
+@commands.has_any_role(*mod_team)
 async def unmute(ctx, *, arg):
     reason, member = aux.getvars(bot, ctx, arg)
     if not(member):
@@ -227,12 +230,12 @@ async def unmute(ctx, *, arg):
         await ctx.send("You cannot unmute this user.")
 
 @bot.command()
-@commands.has_any_role("THE VIBEGUARD", "ADMIN")
+@commands.has_any_role(*mod_team)
 async def spam(ctx, *, arg):
         await ctx.send("spam")
 
 @bot.command()
-@commands.has_any_role("THE VIBEGUARD", "ADMIN")
+@commands.has_any_role(*mod_team)
 async def purge(ctx, *, arg):
     await ctx.message.delete()
     deleted = await ctx.channel.purge(limit= int(arg))
@@ -258,7 +261,7 @@ async def purge(ctx, *, arg):
     await modlog.send(embed= embed)
 
 @bot.command()
-@commands.has_any_role("THE VIBEGUARD", "ADMIN")
+@commands.has_any_role(*mod_team)
 async def backup(ctx):
     now = str(datetime.now())
     now = now.split(' ')[0]
@@ -278,7 +281,7 @@ async def backup(ctx):
     await ctx.send("Backup server created.\n" + invite.url)
 
 @bot.command()
-@commands.has_any_role("THE VIBEGUARD", "ADMIN")
+@commands.has_any_role(*mod_team)
 async def ticketmessage(ctx, *, arg):
     global mod_support
     global merch_support
@@ -312,12 +315,12 @@ async def ticketmessage(ctx, *, arg):
         roles_support = (message.id, channel_id)
 
 @bot.command()
-@commands.has_any_role("THE VIBEGUARD", "ADMIN")
+@commands.has_any_role(*mod_team)
 async def deletebackup(ctx):
     await ctx.guild.delete()
 
 @bot.command()
-@commands.has_any_role("THE VIBEGUARD", "ADMIN")
+@commands.has_any_role(*mod_team)
 async def motd(ctx, *, arg):    # setting someone as the member of the day
     motd = ctx.guild.get_role(int(config['MOTD_ROLE_ID']))
     reason, member = aux.getvars(bot, ctx, arg)
@@ -368,7 +371,7 @@ async def roledump(ctx, *, arg):
     await ctx.send(embed= embed)
 
 @bot.command()
-@commands.has_any_role("THE VIBEGUARD", "ADMIN")
+@commands.has_any_role(*mod_team)
 async def createtrigger(ctx, *, arg):
     '''sql = "INSERT INTO `Trigger` (name, content,embed) VALUES (%s, %s, 0)"
     val = (arg1, arg2)
@@ -386,7 +389,7 @@ async def createtrigger(ctx, *, arg):
         await ctx.send("Invalid trigger.")
 
 @bot.command()
-@commands.has_any_role("THE VIBEGUARD", "ADMIN")
+@commands.has_any_role(*mod_team)
 async def deletetrigger(ctx, *, arg):
     '''mycursor = healthbot.cursor()
     sql = "DELETE FROM `Trigger` WHERE name = '" + arg + "'"
@@ -409,9 +412,8 @@ async def timeout(ctx, *, arg):
     await ctx.author.remove_roles(muted, reason="Timout ended", atomic=True)
     await ctx.author.send("Your timeout in HEALTHcord has ended.")
 
-club_channels = [config['MOVIE_CLUB_ID'],config['BOOK_CLUB_ID'],config['ANIME_CLUB_ID'],config['MUSIC_CLUB_ID'],config['ART_CLUB_ID'],config['GAMING_CLUB_ID'],config['FOOD_CLUB_ID'], config['HEALTH_BOYZ_ID']]
 @bot.command()
-@commands.has_any_role("CLUB LEADER", "THE VIBEGUARD", "ADMIN", "WARBOSS")
+@commands.has_any_role(config['CLUB_LEADER_ID'], *mod_team, config['WARBOSS_ID'])
 async def pin(ctx):
     if str(ctx.channel.id) in club_channels:
         if not(ctx.message.reference):
@@ -429,7 +431,7 @@ async def pin(ctx):
             await ctx.message.delete()
 
 @bot.command()
-@commands.has_any_role("CLUB LEADER", "THE VIBEGUARD", "ADMIN", "WARBOSS")
+@commands.has_any_role(config['CLUB_LEADER_ID'], *mod_team, config['WARBOSS_ID'])
 async def unpin(ctx):
     if str(ctx.channel.id) in club_channels:
         if not(ctx.message.reference):
