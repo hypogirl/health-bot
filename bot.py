@@ -773,7 +773,7 @@ async def on_member_join(member):
 
 @bot.event
 async def on_member_remove(member):
-    now = datetime.now()
+    now = datetime.utcnow()
     modlog = bot.get_channel(int(config['MOD_LOG_ID']))
     memberstr = member.name + "#" + member.discriminator
     timeonserver = now - member.joined_at
