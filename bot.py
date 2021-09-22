@@ -56,29 +56,6 @@ async def help(ctx, *arg):
     if ctx.author.dm_channel != ctx.channel:
         await ctx.send(ctx.author.mention + ", I've sent you a DM with the help menu.")
 
-
-def checkdb(t):
-    mycursor = healthbot.cursor()
-    mycursor.execute("SELECT name,content,embed FROM `Trigger`")
-    myresult = mycursor.fetchall()
-    possible = []
-    trigger = False
-    flag = False
-    for x,y,z in myresult:
-        print(x + " " + t)
-        if x == t:
-            if z == 0:
-                possible.append(y)
-            else:
-                possible.append(y)
-                flag = True
-    if possible:
-        trigger = random.choice(possible)
-    return trigger,flag
-
-def convertembed(t):
-    return
-
 ## MOD COMMANDS ##
 
 @bot.command()
@@ -165,6 +142,44 @@ async def kick(ctx, *, arg):
             print(member.mention + " doesn't allow DMs. It's likely a bot.")
     else:
         await ctx.send("You cannot kick this user.")
+
+async def eject_animation(member,avatar,channel):
+    animation = [member+"ඞ",member+" was an ඞ",member+" was an Impostor. ඞ", member+" was an Impostor."]
+    description = ".             .        .\n    .\n                 .\nඞ\n.          .\n                 .\n .                  ."
+    embed=discord.Embed(title=" ", description=description, color=0xff0000)
+    embed.set_author(name= member + " has been ejected.", icon_url= avatar)
+    message = await channel.send(embed= embed)
+
+    for frame in animation:
+        await asyncio.sleep(2)
+        description = ".             .        .\n    .\n                 .\n" + frame + "\n.          .\n                 .\n .                  ."
+        embed=discord.Embed(title=" ", description=description, color=0xff0000)
+        embed.set_author(name= member + " has been ejected.", icon_url= avatar)
+        await message.edit(embed= embed)
+
+
+@bot.command()
+@commands.has_any_role(*mod_team)
+async def eject(ctx, *, arg):
+    reason, member = aux.getvars(bot, ctx, arg)
+    if not(member):
+        await ctx.send(member.mention + " is not a member of HEALTHcord.")
+        return
+
+    if ctx.author.top_role > member.top_role or ctx.author.id == ctx.guild.owner.id:
+        if member.avatar:
+            avatarurl = "https://cdn.discordapp.com/avatars/" + str(member.id) + "/" + member.avatar + ".webp"
+        else:
+            avatarurl = "https://cdn.discordapp.com/avatars/774402228084670515/5ef539d5f3e8d576c4854768727bc75a.png"
+        memberstr = member.name + "#" + member.discriminator
+
+        await eject_animation(memberstr,avatarurl,ctx.channel)
+
+        await member.kick()
+        embed2,modlog = aux.modlogembed(bot,"eject", reason, ctx, 0xffa500, member)
+        await modlog.send(embed = embed2)
+    else:
+        await ctx.send("You cannot eject this user.")
 
 @bot.command()
 @commands.has_any_role(*mod_team)
