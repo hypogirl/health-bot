@@ -502,7 +502,7 @@ async def on_message(message):
                     break
             if flag and message.content and not(message.attachments) and not(aux.check_url(message.content)):
                 await message.delete()
-        elif str(message.channel.id) in [config['WHOLESOME_MEMES_ID'], config['ART_SHARE_ID']]:
+        elif str(message.channel.id) in [config['WHOLESOME_MEMES_ID'], config['ART_SHARE_ID'], config['GLITCHTOBER_ID']]:
             if message.content and not(message.attachments) and not(aux.check_url(message.content)):
                 await message.delete()
 
