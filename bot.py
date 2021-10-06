@@ -428,7 +428,7 @@ async def timeout(ctx, *, arg):
     await ctx.author.send("Your timeout in HEALTHcord has ended.")
 
 @bot.command()
-@commands.has_any_role(config['CLUB_LEADER_ID'], *mod_team, config['WARBOSS_ID'])
+@commands.has_any_role(int(config['CLUB_LEADER_ID']), *mod_team, int(config['WARBOSS_ID']))
 async def pin(ctx):
     if str(ctx.channel.id) in club_channels:
         if not(ctx.message.reference):
@@ -446,7 +446,7 @@ async def pin(ctx):
             await ctx.message.delete()
 
 @bot.command()
-@commands.has_any_role(config['CLUB_LEADER_ID'], *mod_team, config['WARBOSS_ID'])
+@commands.has_any_role(int(config['CLUB_LEADER_ID']), *mod_team, int(config['WARBOSS_ID']))
 async def unpin(ctx):
     if str(ctx.channel.id) in club_channels:
         if not(ctx.message.reference):
