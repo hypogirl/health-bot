@@ -649,7 +649,7 @@ async def on_raw_reaction_add(payload):
             user = healthcord.get_member(payload.user_id)
             channel = healthcord.get_channel(payload.channel_id)
             message = await channel.fetch_message(payload.message_id)
-            amanda = healthcord.get_member(config['AMANDA_ID'])
+            amanda = healthcord.get_member(int(config['AMANDA_ID']))
             reaction = None
             for reaction_temp in message.reactions:
                 if str(reaction_temp.emoji) == str(payload.emoji):
