@@ -625,9 +625,10 @@ async def create_ticket_channel(init_message,name,user):
     open_ticket_cat = user.guild.get_channel(int(config['OPEN_TICKET_CAT_ID']))
     channel = await user.guild.create_text_channel(name + "-" + user.name, category= open_ticket_cat, overwrites= overwrites)
     message = await channel.send(init_message)
-    await message.add_reaction("🔒")
-    open_tickets[message] = (user,name)
-    open_tickets_id.add(message.id)
+    if name != "merch-ticket":
+        await message.add_reaction("🔒")
+        open_tickets[message] = (user,name)
+        open_tickets_id.add(message.id)
 
 
 curated_messages = set()
@@ -668,7 +669,7 @@ async def on_raw_reaction_add(payload):
                     if ticket_info == (user,"merch-ticket"):
                         await ticket_message.channel.send(user.mention + " hello! You still have this opened ticket. A mod can assist you on whatever else you might need.")
                         return
-                init_message += "\nPlease DM {0} with your merch issue!\n\n``(React to this message with 🔒 to close this ticket.)``".format(amanda.mention)
+                init_message += "\nPlease DM {0} with your merch issue.\n\n".format(amanda.mention)
                 await create_ticket_channel(init_message,"merch-ticket",user)
             elif await support_check(roles_support, reaction, user):
                 for ticket_message,ticket_info in open_tickets.items():
