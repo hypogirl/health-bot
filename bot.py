@@ -618,7 +618,7 @@ async def create_ticket_channel(init_message,name,user):
     global open_tickets_id
     merch_support_role = user.guild.get_role(int(config['MERCH_SUPPORT_ID']))
     mod_role = user.guild.get_role(int(config['MOD_ROLE_ID']))
-    overwrites = {user.guild.default_role: discord.PermissionOverwrite(read_messages=False), user: discord.PermissionOverwrite(read_messages=True), mod_role:discord.PermissionOverwrite(read_messages=True)}
+    overwrites = {user.guild.default_role: discord.PermissionOverwrite(read_messages=False), user: discord.PermissionOverwrite(read_messages=True, send_messages=False), mod_role:discord.PermissionOverwrite(read_messages=True)}
     if name == "merch-ticket":
         overwrites[merch_support_role] = discord.PermissionOverwrite(read_messages=True)
 
@@ -649,6 +649,7 @@ async def on_raw_reaction_add(payload):
             user = healthcord.get_member(payload.user_id)
             channel = healthcord.get_channel(payload.channel_id)
             message = await channel.fetch_message(payload.message_id)
+            amanda = healthcord.get_member(config['AMANDA_ID'])
             reaction = None
             for reaction_temp in message.reactions:
                 if str(reaction_temp.emoji) == str(payload.emoji):
@@ -667,7 +668,7 @@ async def on_raw_reaction_add(payload):
                     if ticket_info == (user,"merch-ticket"):
                         await ticket_message.channel.send(user.mention + " hello! You still have this opened ticket. A mod can assist you on whatever else you might need.")
                         return
-                init_message += "\nDo you have an issue with a merch order?\n" + user.guild.get_role(int(config['MERCH_SUPPORT_ID'])).mention +" will get back to you shortly.\n\n``(React to this message with 🔒 to close this ticket.)``"
+                init_message += "\nPlease DM {0} with your merch issue!\n\n``(React to this message with 🔒 to close this ticket.)``".format(amanda.mention)
                 await create_ticket_channel(init_message,"merch-ticket",user)
             elif await support_check(roles_support, reaction, user):
                 for ticket_message,ticket_info in open_tickets.items():
