@@ -791,7 +791,7 @@ async def on_member_join(member):
 @bot.event
 async def on_member_remove(member):
     now = datetime.utcnow()
-    modlog = bot.get_channel(int(config['MOD_LOG_ID']))
+    usersleaving = bot.get_channel(int(config['USERS_LEAVING_ID']))
     memberstr = member.name + "#" + member.discriminator
     timeonserver = now - member.joined_at
     logs = await member.guild.audit_logs(limit=1, action=discord.AuditLogAction.kick).flatten()
@@ -894,7 +894,7 @@ async def on_member_remove(member):
 
     embed = discord.Embed(title = "Member left", description = member.mention + timestr + "\n**Roles:** " + rolestr, color=0xff0000)
     embed.set_author(name=memberstr, icon_url=avatarurl)
-    await modlog.send(embed= embed)
+    await usersleaving.send(embed= embed)
 
 @bot.event
 async def on_member_update(before, after):
