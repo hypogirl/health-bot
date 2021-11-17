@@ -784,7 +784,7 @@ async def on_member_join(member):
     else:
         avatarurl = "https://cdn.discordapp.com/avatars/774402228084670515/5ef539d5f3e8d576c4854768727bc75a.png"
     memberstr = member.name + "#" + member.discriminator
-    embed = discord.Embed(title=" ", description="User ID: " + str(member.id), color=0xff0000)
+    embed = discord.Embed(title=" ", description="User ID: {0}\n\n{1}".format(str(member.id),member.mention), color=0xff0000)
     embed.set_author(name= memberstr + " has joined the server.", icon_url= avatarurl)
     await bot.get_channel(int(config['NEW_USERS_ID'])).send(embed= embed)
 
