@@ -627,8 +627,8 @@ async def create_ticket_channel(init_message,name,user):
     message = await channel.send(init_message)
     if name != "merch-ticket":
         await message.add_reaction("🔒")
-        open_tickets[message] = (user,name)
-        open_tickets_id.add(message.id)
+    open_tickets[message] = (user,name)
+    open_tickets_id.add(message.id)
 
 
 curated_messages = set()
@@ -679,19 +679,24 @@ async def on_raw_reaction_add(payload):
                 init_message += "\nAre you missing some roles?\n\n``(React to this message with 🔒 to close this ticket.)``"
                 await create_ticket_channel(init_message,"roles-ticket",user)
 
-            if message in open_tickets and reaction.emoji == "🔒":
-                await reaction.remove(user)
-                closed_ticket_cat = user.guild.get_channel(int(config['CLOSED_TICKET_CAT_ID']))
-                await reaction.message.channel.move(category= closed_ticket_cat, end= True)
-                mod_role = user.guild.get_role(int(config['MOD_ROLE_ID']))
-                overwrites = {user.guild.default_role: discord.PermissionOverwrite(read_messages=False), open_tickets[message][0]: discord.PermissionOverwrite(read_messages=False), mod_role: discord.PermissionOverwrite(read_messages=True)}
-                if "merch" in reaction.message.channel.name:
-                    overwrites[user.guild.get_role(int(config['MERCH_SUPPORT_ID']))] = discord.PermissionOverwrite(read_messages=True)
-                await reaction.message.channel.edit(overwrites= overwrites)
-                new_message = await reaction.message.channel.send("``React to this message with 🔓 to re-open this ticket.``")
-                await new_message.add_reaction("🔓")
-                closed_tickets[new_message] = open_tickets[message]
-                closed_tickets_id.add(new_message.id)
+            if message in open_tickets:
+                if reaction.emoji == "🔒":
+                    await reaction.remove(user)
+                    closed_ticket_cat = user.guild.get_channel(int(config['CLOSED_TICKET_CAT_ID']))
+                    await reaction.message.channel.move(category= closed_ticket_cat, end= True)
+                    mod_role = user.guild.get_role(int(config['MOD_ROLE_ID']))
+                    overwrites = {user.guild.default_role: discord.PermissionOverwrite(read_messages=False), open_tickets[message][0]: discord.PermissionOverwrite(read_messages=False), mod_role: discord.PermissionOverwrite(read_messages=True)}
+                    if "merch" in reaction.message.channel.name:
+                        overwrites[user.guild.get_role(int(config['MERCH_SUPPORT_ID']))] = discord.PermissionOverwrite(read_messages=True)
+                    await reaction.message.channel.edit(overwrites= overwrites)
+                    new_message = await reaction.message.channel.send("``React to this message with 🔓 to re-open this ticket.``")
+                    await new_message.add_reaction("🔓")
+                    closed_tickets[new_message] = open_tickets[message]
+                    closed_tickets_id.add(new_message.id)
+                elif reaction.emoji == "❌" and user.id == amanda.id:
+                    await reaction.message.channel.send("Deleting this channel...")
+                    await asyncio.sleep(2)
+                    await reaction.message.channel.delete(reason="merch ticket closed")
                 open_tickets.pop(message)
                 open_tickets_id.remove(message.id)
 
