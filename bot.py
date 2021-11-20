@@ -693,12 +693,15 @@ async def on_raw_reaction_add(payload):
                     await new_message.add_reaction("🔓")
                     closed_tickets[new_message] = open_tickets[message]
                     closed_tickets_id.add(new_message.id)
+                    open_tickets.pop(message)
+                    open_tickets_id.remove(message.id)
                 elif reaction.emoji == "❌" and user.id == amanda.id:
                     await reaction.message.channel.send("Deleting this channel...")
                     await asyncio.sleep(2)
                     await reaction.message.channel.delete(reason="merch ticket closed")
-                open_tickets.pop(message)
-                open_tickets_id.remove(message.id)
+                    open_tickets.pop(message)
+                    open_tickets_id.remove(message.id)
+                
 
             elif message in closed_tickets and reaction.emoji == "🔓":
                 await reaction.remove(user)
