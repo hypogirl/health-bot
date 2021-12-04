@@ -618,9 +618,11 @@ async def create_ticket_channel(init_message,name,user):
     global open_tickets_id
     merch_support_role = user.guild.get_role(int(config['MERCH_SUPPORT_ID']))
     mod_role = user.guild.get_role(int(config['MOD_ROLE_ID']))
-    overwrites = {user.guild.default_role: discord.PermissionOverwrite(read_messages=False), user: discord.PermissionOverwrite(read_messages=True, send_messages=False), mod_role:discord.PermissionOverwrite(read_messages=True)}
     if name == "merch-ticket":
+        overwrites = {user.guild.default_role: discord.PermissionOverwrite(read_messages=False), user: discord.PermissionOverwrite(read_messages=True, send_messages=False), mod_role:discord.PermissionOverwrite(read_messages=True)}
         overwrites[merch_support_role] = discord.PermissionOverwrite(read_messages=True, manage_channels=True)
+    else:
+         overwrites = {user.guild.default_role: discord.PermissionOverwrite(read_messages=False), user: discord.PermissionOverwrite(read_messages=True), mod_role:discord.PermissionOverwrite(read_messages=True)}
 
     open_ticket_cat = user.guild.get_channel(int(config['OPEN_TICKET_CAT_ID']))
     channel = await user.guild.create_text_channel(name + "-" + user.name, category= open_ticket_cat, overwrites= overwrites)
