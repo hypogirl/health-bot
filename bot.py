@@ -159,7 +159,7 @@ async def eject(ctx, *, arg):
         await ctx.send(member.mention + " is not a member of HEALTHcord.")
         return
 
-    embed,message = aux.modactions(ctx, reason, member, "ejected")
+    embed,message = aux.modactions(ctx, reason, member, "kicked")
     if embed:
         if member.avatar:
             avatarurl = "https://cdn.discordapp.com/avatars/" + str(member.id) + "/" + member.avatar + ".webp"
@@ -185,7 +185,7 @@ async def baneject(ctx, *, arg):
     if not(member):
         await ctx.send(member.mention + " is not a member of HEALTHcord.")
         return
-    embed,message = aux.modactions(ctx, reason, member, "ban ejected")
+    embed,message = aux.modactions(ctx, reason, member, "banned")
     if embed:
         if member.avatar:
             avatarurl = "https://cdn.discordapp.com/avatars/" + str(member.id) + "/" + member.avatar + ".webp"
