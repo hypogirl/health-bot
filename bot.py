@@ -691,7 +691,7 @@ async def on_raw_reaction_add(payload):
                     if ticket_info == (user,"general-ticket"):
                         await ticket_message.channel.send(user.mention + " hello! You still have this opened ticket. A mod can assist you on whatever else you might need.")
                         return
-                init_message += "\nWhat's the issue?\nA <@{0}> will help you shortly.\n\n``(React to this message with 🔒 to close this ticket.)``".format(config['MOD_ROLE_ID'])
+                init_message += "\nWhat's the issue?\nA <@&{0}> will help you shortly.\n\n``(React to this message with 🔒 to close this ticket.)``".format(config['MOD_ROLE_ID'])
                 await create_ticket_channel(init_message,"general-ticket",user)
             elif await support_check(merch_support, reaction, user):
                 for ticket_message,ticket_info in open_tickets.items():
