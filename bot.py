@@ -135,7 +135,7 @@ async def eject_animation(member,avatar,channel):
     animation = [member+"ඞ",member+" was an ඞ",member+" was an Impostor. ඞ"]
     description = ".             .        .\n    .\n                 .\nඞ\n.          .\n                 .\n .                  ."
     embed=discord.Embed(title=" ", description=description, color=0xff0000)
-    embed.set_author(name= member + " has been ejected.", icon_url= avatar)
+    embed.set_author(name= member + " is being ejected.", icon_url= avatar)
     message = await channel.send(embed= embed)
 
     for frame in animation:
@@ -169,7 +169,7 @@ async def eject(ctx, *, arg):
         await eject_animation(memberstr,avatarurl,ctx.channel)
         await member.kick()
         await ctx.send(embed=embed)
-        embed2,modlog = aux.modlogembed(bot,"kick", reason, ctx, 0xffa500, member)
+        embed2,modlog = aux.modlogembed(bot,"eject", reason, ctx, 0xffa500, member)
         await modlog.send(embed = embed2)
         try:
             await member.send(message)
@@ -199,7 +199,7 @@ async def baneject(ctx, *, arg):
             await eject_animation(memberstr,avatarurl,ctx.channel)
             await ctx.guild.ban(member,reason=reason + "​​​", delete_message_days=0)
         await ctx.send(embed=embed)
-        embed2,modlog = aux.modlogembed(bot,"ban", reason, ctx, 0xff0000, member)
+        embed2,modlog = aux.modlogembed(bot,"ban eject", reason, ctx, 0xff0000, member)
         await modlog.send(embed = embed2)
         try:
             await member.send(message)
