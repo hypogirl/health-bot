@@ -533,7 +533,7 @@ async def on_message(message):
             if message.content and not(message.attachments) and not(aux.check_url(message.content)):
                 await message.delete()
 
-    if message.content.lower() in ["musik make love to health bot"] or message.guild.get_member(bot.user.id) in message.mentions:
+    if message.content.lower().startswith("musik make love to ") and ("health bot" in message.content.lower() or message.guild.get_member(bot.user.id) in message.mentions):
         await asyncio.sleep(1)
         o = ["Oh no... not me.","Why would anyone want this","What is wrong with you?","No no no no no no"]
         await message.channel.send(random.choice(o))
