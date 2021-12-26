@@ -537,6 +537,7 @@ async def on_message(message):
         await asyncio.sleep(1)
         o = ["Oh no... not me.","Why would anyone want this","What is wrong with you?","No no no no no no"]
         await message.channel.send(random.choice(o))
+        return
 
 
     if message.channel.id != 707011962898481254: #we dont want this on #on-the-real certainly
