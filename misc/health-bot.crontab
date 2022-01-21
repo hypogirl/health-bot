@@ -1,3 +1,3 @@
 MAILTO=""
-*/2 * * * * /bin/bash /home/hackermans/src/health-bot/misc/cronwrapper.sh
+*/2 * * * * /bin/bash $HOME/src/health-bot/misc/cronwrapper.sh
 0 0 * * * /usr/sbin/logrotate -s $HOME/logs/logrotate.state misc/health-bot.logrotate
