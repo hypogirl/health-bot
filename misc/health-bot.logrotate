@@ -1,4 +1,4 @@
-/var/logs/botden/health-bot.log {
+/var/log/botden/health-bot.log {
     maxsize 100M
     copytruncate
     rotate 5
