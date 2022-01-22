@@ -3,6 +3,7 @@ from discord.ext import commands
 from dotenv import dotenv_values
 import asyncio
 import auxfunctions as aux
+import modfunctions as mod
 import math
 import discord
 import sqlite3
@@ -61,215 +62,50 @@ async def help(ctx, *arg):
 @bot.command()
 @commands.has_any_role(*mod_team)
 async def warn(ctx, *, arg):
-    reason, member = aux.getvars(bot, ctx, arg)
-    if not(member):
-        await ctx.send(member.mention + " is not a member of HEALTHcord.")
-        return
-    embed,message = aux.modactions(ctx, reason, member, "warned")
-    if embed:
-        await ctx.send(embed=embed)
-        embed2,modlog = aux.modlogembed(bot,"warn", reason, ctx, 0xfffcbb, member)
-        await modlog.send(embed= embed2)
-        try:
-            await member.send(message)
-        except:
-            print(member.mention + " doesn't allow DMs. It's likely a bot.")
-    else:
-        await ctx.send("You cannot warn this user.")
+    (members, reason) = await aux.get_member_reason(ctx)
+    await mod.main("warn", bot, ctx, members, reason)
 
 @bot.command()
 @commands.has_any_role(*mod_team)
 async def ban(ctx, *, arg):
-    reason, member = aux.getvars(bot, ctx, arg)
-    if not(member):
-        await ctx.send(member.mention + " is not a member of HEALTHcord.")
-        return
-    embed,message = aux.modactions(ctx, reason, member, "banned")
-    if embed:
-        if reason =="":
-            await ctx.guild.ban(member,reason="​​​", delete_message_days=0)
-        else:
-            await ctx.guild.ban(member,reason=reason + "​​​", delete_message_days=0)
-        await ctx.send(embed=embed)
-        embed2,modlog = aux.modlogembed(bot,"ban", reason, ctx, 0xff0000, member)
-        await modlog.send(embed = embed2)
-        try:
-            await member.send(message)
-        except:
-            print(member.mention + " doesn't allow DMs. It's likely a bot.")
-    else:
-        await ctx.send("You cannot ban this user.")
+    (members, reason) = await aux.get_member_reason(ctx)
+    await mod.main("ban", bot, ctx, members, reason)
 
 @bot.command()
 @commands.has_any_role(*mod_team)
 async def unban(ctx, *, arg):
-    reason, member = aux.getvars(bot, ctx, arg)
-    if not(member):
-        await ctx.send("I cannot find this user. Please unban " + member.mention + " manually.")
-        return
-    embed,message = aux.modactions(ctx, reason, member, "unbanned")
-    if embed:
-        if reason == "":
-            await ctx.guild.unban(member,reason="​​​")
-        else:
-            await ctx.guild.unban(member,reason=reason + "​​​")
-        await ctx.send(embed=embed)
-        embed2,modlog = aux.modlogembed(bot,"unban", reason, ctx, 0x149414, member)
-        await modlog.send(embed = embed2)
-        try:
-            await member.send(message)
-        except:
-            print(member.mention + " doesn't allow DMs. It's likely a bot.")
-    else:
-        await ctx.send("You cannot ban this user.")
+    (members, reason) = await aux.get_member_reason(ctx)
+    await mod.main("unban", bot, ctx, members, reason)
 
 @bot.command()
 @commands.has_any_role(*mod_team)
 async def kick(ctx, *, arg):
-    reason, member = aux.getvars(bot, ctx, arg)
-    if not(member):
-        await ctx.send(member.mention + " is not a member of HEALTHcord.")
-        return
-
-async def eject_animation(member,avatar,channel):
-    animation = [member+"ඞ",member+" was an ඞ",member+" was an Impostor. ඞ"]
-    description = ".             .        .\n    .\n                 .\nඞ\n.          .\n                 .\n .                  ."
-    embed=discord.Embed(title=" ", description=description, color=0xff0000)
-    embed.set_author(name= member + " is being ejected.", icon_url= avatar)
-    message = await channel.send(embed= embed)
-
-    for frame in animation:
-        await asyncio.sleep(2)
-        description = ".             .        .\n    .\n                 .\n{0}\n.          .\n                 .\n .                  .".format(frame)
-        embed=discord.Embed(title=" ", description=description, color=0xff0000)
-        embed.set_author(name= member + " is being ejected.", icon_url= avatar)
-        await message.edit(embed= embed)
-    
-    await asyncio.sleep(2)
-    description = ".             .        .\n    .\n                 .\n{0}\n.          .\n                 .\n .                  .".format(member+" was an Impostor.")
-    embed=discord.Embed(title=" ", description=description, color=0xff0000)
-    embed.set_author(name= member + " has been ejected.", icon_url= avatar)
-    await message.edit(embed= embed)
+    (members, reason) = await aux.get_member_reason(ctx)
+    await mod.main("kick", bot, ctx, members, reason)
 
 @bot.command()
 @commands.has_any_role(*mod_team)
 async def eject(ctx, *, arg):
-    reason, member = aux.getvars(bot, ctx, arg)
-    if not(member):
-        await ctx.send(member.mention + " is not a member of HEALTHcord.")
-        return
-
-    embed,message = aux.modactions(ctx, reason, member, "kicked")
-    if embed:
-        if member.avatar:
-            avatarurl = "https://cdn.discordapp.com/avatars/" + str(member.id) + "/" + member.avatar + ".webp"
-        else:
-            avatarurl = "https://cdn.discordapp.com/avatars/774402228084670515/5ef539d5f3e8d576c4854768727bc75a.png"
-        memberstr = member.name + "#" + member.discriminator
-        await eject_animation(memberstr,avatarurl,ctx.channel)
-        await member.kick()
-        await ctx.send(embed=embed)
-        embed2,modlog = aux.modlogembed(bot,"eject", reason, ctx, 0xffa500, member)
-        await modlog.send(embed = embed2)
-        try:
-            await member.send(message)
-        except:
-            print(member.mention + " doesn't allow DMs. It's likely a bot.")
-    else:
-        await ctx.send("You cannot eject this user.")
+    (members, reason) = await aux.get_member_reason(ctx)
+    await mod.main("eject", bot, ctx, members, reason)
 
 @bot.command()
 @commands.has_any_role(*mod_team)
 async def baneject(ctx, *, arg):
-    reason, member = aux.getvars(bot, ctx, arg)
-    if not(member):
-        await ctx.send(member.mention + " is not a member of HEALTHcord.")
-        return
-    embed,message = aux.modactions(ctx, reason, member, "banned")
-    if embed:
-        if member.avatar:
-            avatarurl = "https://cdn.discordapp.com/avatars/" + str(member.id) + "/" + member.avatar + ".webp"
-        else:
-            avatarurl = "https://cdn.discordapp.com/avatars/774402228084670515/5ef539d5f3e8d576c4854768727bc75a.png"
-        memberstr = member.name + "#" + member.discriminator
-        if reason =="":
-            await eject_animation(memberstr,avatarurl,ctx.channel)
-            await ctx.guild.ban(member,reason="​​​", delete_message_days=0)
-        else:
-            await eject_animation(memberstr,avatarurl,ctx.channel)
-            await ctx.guild.ban(member,reason=reason + "​​​", delete_message_days=0)
-        await ctx.send(embed=embed)
-        embed2,modlog = aux.modlogembed(bot,"ban eject", reason, ctx, 0xff0000, member)
-        await modlog.send(embed = embed2)
-        try:
-            await member.send(message)
-        except:
-            print(member.mention + " doesn't allow DMs. It's likely a bot.")
-    else:
-        await ctx.send("You cannot ban eject this user.")
+    (members, reason) = await aux.get_member_reason(ctx)
+    await mod.main("ban eject", bot, ctx, members, reason)
 
 @bot.command()
 @commands.has_any_role(*mod_team)
 async def mute(ctx, *, arg):
-    reason, member = aux.getvars(bot, ctx, arg)
-
-    if not(member):
-        await ctx.send(member.mention + " is not a member of HEALTHcord.")
-        return
-
-    seconds = ""
-    x = 0
-    for x in range(len(reason)):
-        seconds += reason[x]
-        if not(reason[x].isnumeric()):
-            break
-
-    suffix = seconds[:-1]
-    if suffix:
-        reason = reason[x+2:]
-        secondsint = int(seconds[:-1])
-        timestr, secondsint = aux.timestrbuilder(seconds,secondsint,suffix)
-        embed,message = aux.modactions(ctx, reason, member, "muted for " + timestr)
-    else:
-        embed,message = aux.modactions(ctx, reason, member, "muted")
-    muted = ctx.guild.get_role(int(config['MUTED_ROLE_ID']))
-    if embed:
-        await member.add_roles(muted,reason="Muted", atomic=True)
-        await ctx.send(embed=embed)
-        embed2,modlog = aux.modlogembed(bot,"mute", reason, ctx, 0xfffcbb, member)
-        await modlog.send(embed = embed2)
-        try:
-            await member.send(message)
-        except:
-            print(member.mention + " doesn't allow DMs. It's likely a bot.")
-        if timestr:
-            await asyncio.sleep(secondsint)
-            await member.remove_roles(muted, reason="Unmuted", atomic=True)
-            embed2,modlog = aux.modlogembed(bot,"unmute", "Timed unmute", ctx, 0x149414, member)
-            await modlog.send(embed = embed2)
-    else:
-        await ctx.send("You cannot mute this user.")
+    (members, reason) = await aux.get_member_reason(ctx)
+    await mod.main("mute", bot, ctx, members, reason)
 
 @bot.command()
 @commands.has_any_role(*mod_team)
 async def unmute(ctx, *, arg):
-    reason, member = aux.getvars(bot, ctx, arg)
-    if not(member):
-        await ctx.send(member.mention + " is not a member of HEALTHcord.")
-        return
-    embed,message = aux.modactions(ctx, reason, member, "unmuted")
-    muted = ctx.guild.get_role(int(config['MUTED_ROLE_ID']))
-    if embed:
-        await member.remove_roles(muted, reason="Unmuted", atomic=True)
-        await ctx.send(embed=embed)
-        embed2,modlog = aux.modlogembed(bot,"unmute", reason, ctx, 0x149414, member)
-        await modlog.send(embed = embed2)
-        try:
-            await member.send(message)
-        except:
-            print(member.mention + " doesn't allow DMs. It's likely a bot.")
-    else:
-        await ctx.send("You cannot unmute this user.")
+    (members, reason) = await aux.get_member_reason(ctx)
+    await mod.main("mute", bot, ctx, members, reason)
 
 @bot.command()
 @commands.has_any_role(*mod_team)
@@ -295,7 +131,7 @@ async def purge(ctx, *, arg):
     users.sort(reverse=True, key=lambda x:x[1])
 
     for x in users:
-        deletedstr += "**" + x[0].name + "#" + x[0].discriminator + ":** " + str(x[1]) + "\n"
+        deletedstr += f"**{x[0].name}#{x[0].discriminator}:** {str(x[1])}\n"
 
     modlog = bot.get_channel(int(config['MOD_LOG_ID']))
     embed = discord.Embed(title=" ", description="Messages deleted:\n\n" + deletedstr, color=0xff0000)

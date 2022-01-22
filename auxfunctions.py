@@ -11,20 +11,32 @@ def checkmod(ctx):
     admin = ctx.guild.get_role(int(config['ADMIN_ROLE_ID']))
     return mod in ctx.author.roles or admin in ctx.author.roles or ctx.author.id == ctx.guild.owner.id
 
-def getvars(bot, ctx, arg): # gets the user, reason and member for the mod functions
-    member_id = ""
+async def get_member_reason(ctx): # gets the user and reason for the mod functions
+    message = ctx.message
+    reason = str()
+    members = list()
 
-    for x in range(len(arg)):
-        if arg[x].isnumeric():
-            member_id += arg[x]
-        if arg[x] == ">" or arg[x] == " ":
-            break
+    if not(message.mentions):
+        possible_ids = re.findall(r"\d+", message.content)
+        if not(possible_ids):
+            return False, False
+        for possible_id in possible_ids:
+            member_id = int(possible_id)
+            member = ctx.guild.get_member(member_id)
+            if member:
+                members.append(member)
+    else:
+        members = message.mentions
 
-    member_id = int(member_id)
-    reason = arg[x+2:]
-    member = ctx.guild.get_member(member_id)
+    possible_reason = re.findall(r"[\d+ ]+(.*)", message.content)
+    if possible_reason:
+        reason = possible_reason[0]
 
-    return reason, member
+    if not(members):
+        await ctx.send("Please mention a member or enter a valid member ID.")
+        return False, False
+
+    return members, reason
 
 def modactions(ctx, reason, member, action): # writes the embed and dm for the mod functions
     if ctx.author.top_role > member.top_role or ctx.author.id == ctx.guild.owner.id:
@@ -163,3 +175,23 @@ def check_url_aux(message):
 
 def check_url(message):
     return check_url_aux(message) or check_url_aux(message + "/")
+
+async def eject_animation(member,avatar,channel):
+    animation = [member+"ඞ",member+" was an ඞ",member+" was an Impostor. ඞ"]
+    description = ".             .        .\n    .\n                 .\nඞ\n.          .\n                 .\n .                  ."
+    embed=discord.Embed(title=" ", description=description, color=0xff0000)
+    embed.set_author(name= member + " is being ejected.", icon_url= avatar)
+    message = await channel.send(embed= embed)
+
+    for frame in animation:
+        await asyncio.sleep(2)
+        description = ".             .        .\n    .\n                 .\n{0}\n.          .\n                 .\n .                  .".format(frame)
+        embed=discord.Embed(title=" ", description=description, color=0xff0000)
+        embed.set_author(name= member + " is being ejected.", icon_url= avatar)
+        await message.edit(embed= embed)
+    
+    await asyncio.sleep(2)
+    description = ".             .        .\n    .\n                 .\n{0}\n.          .\n                 .\n .                  .".format(member+" was an Impostor.")
+    embed=discord.Embed(title=" ", description=description, color=0xff0000)
+    embed.set_author(name= member + " has been ejected.", icon_url= avatar)
+    await message.edit(embed= embed)
