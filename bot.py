@@ -540,7 +540,7 @@ async def on_message(message):
         return
 
 
-    if message.channel.category_id != config['ON_THE_REAL_ID']: #we dont want this on #on-the-real certainly
+    if message.channel.category_id != int(config['ON_THE_REAL_ID']): #we dont want this on #on-the-real certainly
         emojialbum = aux.album(message.content,message.mentions) #finding if there is a mention to a HEALTH album in a message and reacting with the album cover
         if emojialbum:
             for x in emojialbum:
