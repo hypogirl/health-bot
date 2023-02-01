@@ -775,7 +775,7 @@ async def on_raw_reaction_add(payload):
             if str(reaction_temp.emoji) == str(payload.emoji):
                 reaction = reaction_temp
                 break
-        if reaction.count == 10:
+        if reaction.count == 7:
             curated_messages.add(payload.message_id)
             serverid = str(message.guild.id)
             channelid = str(message.channel.id)
