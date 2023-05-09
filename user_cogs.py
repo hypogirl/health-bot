@@ -17,7 +17,7 @@ class UserCog(commands.Cog):
             await ctx.send("Please enter a valid time unit.")
             return
         
-        muted_role = ctx.guild.get_role(config["MUTED_ROLE_ID"])
+        muted_role = ctx.guild.get_role(int(config["MUTED_ROLE_ID"]))
         await ctx.author.add_roles(muted_role, reason= "Self-requested timeout", atomic= True)
         embed = discord.Embed(title= " ", color= 0xff0000)
         embed.set_author(name= f"Enjoy your timeout. ({time[0]})")
@@ -37,7 +37,7 @@ class UserCog(commands.Cog):
                 await message_to_pin.pin(reason="Pinned by " + ctx.author.name)
                 await ctx.message.delete()
                 
-        elif useful.check_mod(ctx, config["MOD_ROLE_ID"], config["ADMIN_ROLE_ID"]):
+        elif useful.check_mod(ctx):
             if not(ctx.message.reference):
                 await ctx.reply("Reply to the message you want to pin.")
             else:
@@ -60,7 +60,7 @@ class UserCog(commands.Cog):
                         await ctx.message.delete()
                         break
 
-        elif useful.check_mod(ctx, config["MOD_ROLE_ID"], config["ADMIN_ROLE_ID"]):
+        elif useful.check_mod(ctx):
             if not(ctx.message.reference):
                 await ctx.reply("Reply to the message you want to pin.")
             else:

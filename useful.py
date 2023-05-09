@@ -50,7 +50,7 @@ def create_messages(user, reason, action):
 
 def create_modlog_embed(ctx, action, reason, colour, user):
     message = ctx.message
-    modlog = ctx.guild.get_channel(config["MOD_LOG_ID"])
+    modlog = ctx.guild.get_channel(int(config["MOD_LOG_ID"]))
     message_url = f"https://discord.com/channels/{ctx.guild.id}/{ctx.channel.id}/{message.id}"
 
     if not(reason):

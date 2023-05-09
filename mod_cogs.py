@@ -63,7 +63,7 @@ class Modding(commands.Cog):
         else:
             members, _ = await useful.generic_modding_action(ctx, arg, "mute", "muted", 0xfffcbb, reason)
 
-        muted_role = ctx.guild.get_role(config["MUTED_ROLE_ID"])
+        muted_role = ctx.guild.get_role(int(config["MUTED_ROLE_ID"]))
         for member in members:
             await member.add_roles(muted_role,reason="Muted", atomic=True)
             if time[1]:
@@ -77,7 +77,7 @@ class Modding(commands.Cog):
         if not(mod):
             return
 
-        muted_role = ctx.guild.get_role(config["MUTED_ROLE_ID"])
+        muted_role = ctx.guild.get_role(int(config["MUTED_ROLE_ID"]))
         for member in members:
             await member.remove_roles(muted_role, reason="Unmuted", atomic=True)
 
@@ -158,12 +158,12 @@ class ModMisc(commands.Cog):
 
         embed = discord.Embed(title=" ", description="Messages deleted:\n\n" + deleted_text, color=0xff0000)
         embed.set_author(name= f"{len(deleted)} messages purged | #{ctx.channel.name}")
-        await ctx.bot.get_channel(config["MOD_LOG_ID"]).send(embed= embed)
+        await ctx.bot.get_channel(int(config["MOD_LOG_ID"])).send(embed= embed)
 
     @commands.command()
     @commands.has_any_role(*mod_team)
     async def motd(self, ctx, *, arg):
-        motd_role = ctx.guild.get_role(config["MOTD_ROLE_ID"])
+        motd_role = ctx.guild.get_role(int(config["MOTD_ROLE_ID"]))
         members, _ = useful.get_modding_info(ctx, arg)
 
         for member in members:
