@@ -2,11 +2,8 @@ import asyncio
 from datetime import datetime
 import discord
 from discord.ext import commands
+import useful
 from useful import config
-from mod_cogs import *
-from user_cogs import *
-#from event_cogs import *
-from user_cogs import *
 
 mod_support = (int(config['MOD_SUPPORT_MESSAGE_ID']),int(config['MOD_SUPPORT_CHANNEL_ID']))
 merch_support = (int(config['MERCH_SUPPORT_MESSAGE_ID']),int(config['MERCH_SUPPORT_CHANNEL_ID']))
@@ -15,33 +12,25 @@ closed_tickets = {}
 open_tickets_id = set()
 closed_tickets_id = set()
 intents = discord.Intents.all()
+temp_bot = commands.Bot(command_prefix="!", intents=intents)
 
-def main():
-    intents = discord.Intents.all()
-    bot = commands.Bot(command_prefix= config["COMMAND_PREFIX"], intents= intents)
+class Events(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+        self._last_member = None
 
-    @bot.event
-    async def on_ready():
-        print(f'Logged in as {bot.user}.\n')
-
-    asyncio.run(bot.add_cog(Modding(bot)))
-    asyncio.run(bot.add_cog(ModMisc(bot)))
-    asyncio.run(bot.add_cog(UserCog(bot)))
-    #asyncio.run(bot.add_cog(Events(bot)))
-
-    # all of the following events are temporary here
-    @bot.event
+    @temp_bot.event
     async def on_message(message):
-        if message.author == bot.user:
+        if message.author == commands.bot.user:
             return
 
         if message.content.startswith(config["COMMAND_PREFIX"]):
             if message.content.startswith(config["COMMAND_PREFIX"] + "<:dovide:734404973466484816>"):
                 message.content = config["COMMAND_PREFIX"] + "timeout" + message.content[29:]
-            await bot.process_commands(message)
+            await commands.bot.process_commands(message)
             return
 
-        if not(useful.check_mod(message)):
+        if not(useful.checkmod(message)):
             if str(message.channel.id) == config['ART_CLUB_ID']:
                 roles_names = [role.name for role in message.author.roles]
                 if "CLUB LEADER" in roles_names and message.content and not(message.attachments) and not(useful.check_url(message.content)):
@@ -51,7 +40,7 @@ def main():
                 if message.content and not(message.attachments) and not(useful.check_url(message.content)):
                     await message.delete()
 
-    @bot.event
+    @temp_bot.event
     async def on_message_edit(before,after):
         if before.author.bot or before.content == after.content:
             return
@@ -62,13 +51,13 @@ def main():
 
         embed = discord.Embed(title= "Message edited in #" + before.channel.name, description= f"**Before:** {before.content}\n**After:** {after.content}",color= 0x45b6fe)
         embed.set_author(name=user_str, icon_url=avatar_url)
-        await bot.get_channel(int(config['BIG_BROTHER_ID'])).send(embed= embed)
+        await commands.bot.get_channel(int(config['BIG_BROTHER_ID'])).send(embed= embed)
 
         if after.channel.id == int(config['WHOLESOME_MEMES_ID']) or after.channel.id ==int (config['ART_SHARE_ID']):
             if after.content and not(after.attachments) and not(useful.check_url(after.content)):
                 await after.delete()
 
-    @bot.event
+    @temp_bot.event
     async def on_message_delete(message):
         if message.author.bot:
             return
@@ -84,7 +73,7 @@ def main():
         embed.set_author(name=user_str, icon_url=avatar_url)
         await message.guild.get_channel(int(config['BIG_BROTHER_ID'])).send(embed= embed)
 
-    @bot.event
+    @temp_bot.event
     async def on_member_join(member):
         avatar_url = member.avatar.url if member.avatar else "https://cdn.discordapp.com/avatars/774402228084670515/5ef539d5f3e8d576c4854768727bc75a.png"
         member_str = member.name + "#" + member.discriminator
@@ -92,7 +81,7 @@ def main():
         embed.set_author(name= member_str + " has joined the server.", icon_url= avatar_url)
         await member.guild.get_channel(int(config['NEW_USERS_ID'])).send(embed= embed)
 
-    @bot.event
+    @temp_bot.event
     async def on_member_update(before, after):
         if after.id == 697891299080142919 and before.status != after.status:
             beej_embed = discord.Embed(color=0xff0000)
@@ -103,7 +92,7 @@ def main():
                 beej_embed.set_author(name="BEEJ has fled.")
                 await after.guild.get_channel(int(config['GENERAL_ID'])).send(embed= beej_embed)
 
-    @bot.event
+    @temp_bot.event
     async def on_member_remove(member):
         now = datetime.utcnow()
         users_leaving = member.guild.get_channel(int(config['USERS_LEAVING_ID']))
@@ -119,7 +108,7 @@ def main():
         embed.set_author(name= member_str, icon_url= avatar_url)
         await users_leaving.send(embed= embed)
 
-    @bot.event
+    @temp_bot.event
     async def on_guild_channel_delete(channel):
         for message in open_tickets:
             if message.channel.id == channel.id:
@@ -127,7 +116,7 @@ def main():
                 open_tickets_id.remove(message.id)
                 break
 
-    @bot.event
+    @temp_bot.event
     async def on_member_update(before, after):
         new_roles = [role for role in after.roles if role not in before.roles]
         for role in new_roles:
@@ -138,23 +127,29 @@ def main():
                 await patrons_channel.send(after.mention, embed=new_user_embed)
                 break
 
-    @bot.event
+
+class ReactionAdd(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+        self._last_member = None
+
+    @temp_bot.event
     async def on_raw_reaction_add(payload):
-        if payload.user_id == bot.user.id:
+        if payload.user_id == commands.bot.user.id:
             return
         
         # tickets
         global mod_support
         global merch_support
+        global roles_support
         global open_tickets
         global open_tickets_id
         global closed_tickets
         global closed_tickets_id
-        print(open_tickets)
 
-        if payload.channel_id in [mod_support[1],merch_support[1]] or payload.message_id in open_tickets_id or payload.message_id in closed_tickets_id:
+        if payload.channel_id in [mod_support[1],merch_support[1],roles_support[1]] or payload.message_id in open_tickets_id or payload.message_id in closed_tickets_id:
             # converting payload to usable variables
-            healthcord = bot.get_guild(payload.guild_id)
+            healthcord = commands.bot.get_guild(payload.guild_id)
             user = healthcord.get_member(payload.user_id)
             channel = healthcord.get_channel(payload.channel_id)
             message = await channel.fetch_message(payload.message_id)
@@ -171,14 +166,21 @@ def main():
                         await ticket_message.channel.send(user.mention + " hello! You still have this opened ticket. A mod can assist you on whatever else you might need.")
                         return
                 init_message += "\nWhat's the issue?\nA <@&{0}> will help you shortly.\n\n``(React to this message with 🔒 to close this ticket.)``".format(config['MOD_ROLE_ID'])
-                open_tickets, open_tickets_id = await useful.create_ticket_channel(init_message, "general-ticket", user, open_tickets, open_tickets_id)
+                await useful.create_ticket_channel(init_message,"general-ticket",user)
             elif await useful.support_check(merch_support, reaction, user):
                 for ticket_message,ticket_info in open_tickets.items():
                     if ticket_info == (user,"merch-ticket"):
                         await ticket_message.channel.send(user.mention + " hello! You still have this opened ticket. A mod can assist you on whatever else you might need.")
                         return
                 init_message += "\nIf you ordered from HEALTH's US-based merch site (<https://fashion.youwillloveeachother.com>), please DM {0} with your merch issue.\n\nIf you ordered from Loma Vista or Deathwish EU, please contact them via the below links:\n\nLoma Vista: <https://bodega.lomavistarecordings.com/pages/contact-us>\nDeathwish EU: <https://deathwishinc.eu/pages/contact>\n".format(amanda.mention)
-                open_tickets, open_tickets_id = await useful.create_ticket_channel(init_message, "merch-ticket", user, open_tickets, open_tickets_id)
+                await useful.create_ticket_channel(init_message,"merch-ticket",user)
+            elif await useful.support_check(roles_support, reaction, user):
+                for ticket_message,ticket_info in open_tickets.items():
+                    if ticket_info == (user,"roles-ticket"):
+                        await ticket_message.channel.send(user.mention + " hello! You still have this opened ticket. A mod can assist you on whatever else you might need.")
+                        return
+                init_message += "\nAre you missing some roles?\n\n``(React to this message with 🔒 to close this ticket.)``"
+                await useful.create_ticket_channel(init_message,"roles-ticket",user)
 
             if message in open_tickets:
                 if reaction.emoji == "🔒":
@@ -222,7 +224,7 @@ def main():
         # curation
         global curated_messages
         if payload.emoji != str(payload.emoji) and (payload.emoji.name == "cacostar" or payload.emoji.name == "russtar") and payload.message_id not in curated_messages:
-            healthcord = bot.get_guild(payload.guild_id)
+            healthcord = commands.bot.get_guild(payload.guild_id)
             channel = healthcord.get_channel(payload.channel_id)
             message = await channel.fetch_message(payload.message_id)
             reaction = None
@@ -264,8 +266,3 @@ def main():
 
                 health_curated = healthcord.get_channel(int(config['CURATION_CHANNEL_ID']))
                 await health_curated.send(embed= embed)
-
-    bot.run(config['BOT_TOKEN'])
-
-if __name__ == "__main__":
-    main()
