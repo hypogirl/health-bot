@@ -11,8 +11,8 @@ class UserCog(commands.Cog):
 
     @commands.command()
     async def timeout(self, ctx, *, arg):
-        _, time, _ = useful.get_mute_info(ctx, arg, muting= False)
-        
+        time, _ = useful.get_mute_info(arg)
+
         if not(time[0]):
             await ctx.send("Please enter a valid time unit.")
             return

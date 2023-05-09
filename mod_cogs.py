@@ -12,40 +12,37 @@ class Modding(commands.Cog):
         self._last_member = None
     
     @commands.command()
+    @commands.has_any_role(*mod_team)
     async def warn(self, ctx, *, arg):
         await useful.generic_modding_action(ctx, arg, "warn", "warned", 0xffa500)
 
     @commands.command()
+    @commands.has_any_role(*mod_team)
     async def kick(self, ctx, *, arg):
-        mod, members, _ = await useful.generic_modding_action(ctx, arg, "kick", "kicked", 0xffa500)
-        if not(mod):
-            return
+        members, _ = await useful.generic_modding_action(ctx, arg, "kick", "kicked", 0xffa500)
         for member in members:
             await member.kick()
 
     @commands.command()
+    @commands.has_any_role(*mod_team)
     async def ban(self, ctx, *, arg):
-        mod, members, reason = await useful.generic_modding_action(ctx, arg, "ban", "banned", 0xff0000)
-        if not(mod):
-            return
+        members, reason = await useful.generic_modding_action(ctx, arg, "ban", "banned", 0xff0000)
         
         for member in members:
             await ctx.guild.ban(member, reason= reason, delete_message_seconds= 0)
 
     @commands.command()
+    @commands.has_any_role(*mod_team)
     async def purgeban(self, ctx, *, arg):
-        mod, members, reason = await useful.generic_modding_action(ctx, arg, "ban and message purge", "banned and their messages have been purged", 0xff0000)
-        if not(mod):
-            return
+        members, reason = await useful.generic_modding_action(ctx, arg, "ban and message purge", "banned and their messages have been purged", 0xff0000)
         
         for member in members:
             await ctx.guild.ban(member, reason= reason, delete_message_seconds= 604800)
 
     @commands.command()
+    @commands.has_any_role(*mod_team)
     async def unban(self, ctx, *, arg):
-        mod, _, reason = await useful.generic_modding_action(ctx, arg, "unban", "unbanned", 0x149414)
-        if not(mod):
-            return
+        _, reason = await useful.generic_modding_action(ctx, arg, "unban", "unbanned", 0x149414)
         
         users = useful.get_unban_ids(arg)
         
@@ -53,19 +50,18 @@ class Modding(commands.Cog):
             user = await ctx.bot.fetch_user(user_id)
             if not(user):
                 continue
-            
+
             await ctx.guild.unban(user, reason= reason)
 
     @commands.command()
+    @commands.has_any_role(*mod_team)
     async def mute(self, ctx, *, arg):
-        mod, time, reason = useful.get_mute_info(ctx, arg)
-        if not(mod):
-            return
+        time, reason = useful.get_mute_info(arg)
         
         if time[0]:
-            _, members, _ = await useful.generic_modding_action(ctx, arg, "mute", f"muted for {time[0]}", 0xfffcbb, reason)
+            members, _ = await useful.generic_modding_action(ctx, arg, "mute", f"muted for {time[0]}", 0xfffcbb, reason)
         else:
-            _, members, _ = await useful.generic_modding_action(ctx, arg, "mute", "muted", 0xfffcbb, reason)
+            members, _ = await useful.generic_modding_action(ctx, arg, "mute", "muted", 0xfffcbb, reason)
 
         muted_role = ctx.guild.get_role(config["MUTED_ROLE_ID"])
         for member in members:
@@ -75,8 +71,9 @@ class Modding(commands.Cog):
                 await member.remove_roles(muted_role, reason="Unmuted", atomic=True)
 
     @commands.command()
+    @commands.has_any_role(*mod_team)
     async def unmute(self, ctx, *, arg):
-        mod, members, _ = await useful.generic_modding_action(ctx, arg, "unmute", "unmuted", 0xfffcbb)
+        members, _ = await useful.generic_modding_action(ctx, arg, "unmute", "unmuted", 0xfffcbb)
         if not(mod):
             return
 
@@ -85,9 +82,8 @@ class Modding(commands.Cog):
             await member.remove_roles(muted_role, reason="Unmuted", atomic=True)
 
     @commands.command()
+    @commands.has_any_role(*mod_team)
     async def eject(self, ctx, *, arg):
-        if not(useful.check_mod(ctx)):
-                return
         members, reason = useful.get_modding_info(ctx, arg)
         for member in members:
             if ctx.author.top_role <= member.top_role:
@@ -107,9 +103,8 @@ class Modding(commands.Cog):
             await ctx.send(embed= mod_embed)
 
     @commands.command()
+    @commands.has_any_role(*mod_team)
     async def baneject(self, ctx, *, arg):
-        if not(useful.check_mod(ctx)):
-                return
         members, reason = useful.get_modding_info(ctx, arg)
         for member in members:
             if ctx.author.top_role <= member.top_role:
@@ -135,16 +130,14 @@ class ModMisc(commands.Cog):
         self._last_member = None
 
     @commands.command()
+    @commands.has_any_role(*mod_team)
     async def spam(self, ctx, *, arg):
-        if not(useful.check_mod(ctx)):
-            return
         for x in range(int(arg)):
             await ctx.send("spam")
 
     @commands.command()
+    @commands.has_any_role(*mod_team)
     async def purge(self, ctx, *, arg):
-        if not(useful.check_mod(ctx)):
-            return
         await ctx.message.delete()
         deleted = await ctx.channel.purge(limit= int(arg))
         deleted_text = ""
@@ -168,10 +161,8 @@ class ModMisc(commands.Cog):
         await ctx.bot.get_channel(config["MOD_LOG_ID"]).send(embed= embed)
 
     @commands.command()
+    @commands.has_any_role(*mod_team)
     async def motd(self, ctx, *, arg):
-        if not(useful.check_mod(ctx)):
-            return
-        
         motd_role = ctx.guild.get_role(config["MOTD_ROLE_ID"])
         members, _ = useful.get_modding_info(ctx, arg)
 

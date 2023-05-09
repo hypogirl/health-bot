@@ -14,6 +14,7 @@ club_channels = [config['MOVIE_CLUB_ID'],config['BOOK_CLUB_ID'],config['ANIME_CL
 def check_mod(ctx):
     return ctx.guild.get_role(config['MOD_ROLE_ID']) in ctx.author.roles or ctx.guild.get_role(config['ADMIN_ROLE_ID']) in ctx.author.roles
 
+
 def get_modding_info(ctx, arg):
     members = list()
 
@@ -26,16 +27,13 @@ def get_modding_info(ctx, arg):
 
     return members, reason
 
-def get_mute_info(ctx, arg, muting= True):
-    if muting and not(check_mod(ctx)):
-            return False, None, None
-    
+def get_mute_info(arg):
     time_list = re.findall(r"(?:(?:<@\d{18}>|\d{18})\s+)*(\d+)([smhdy])", arg)
     reason_list = re.findall(r"^(?:(?:<@\d{18}>|\d{18})\s+)+(?:\d+[smhdy]\s+)?((?:(?!<@\d{18}>|\d{18}|\d+[smhdy])\S+(?:\s+|$))+)$", arg)
     (time, unit) = time_list[0] if time_list else (0, None)
     reason = reason_list[0] if reason_list else str()
 
-    return True, time_builder(int(time), unit), reason
+    return time_builder(int(time), unit), reason
 
 def create_messages(user, reason, action):
     avatar_url = user.avatar.url if user.avatar else "https://cdn.discordapp.com/avatars/774402228084670515/5ef539d5f3e8d576c4854768727bc75a.png"
@@ -66,9 +64,6 @@ def get_unban_ids(arg):
     return re.findall(r"<?@?(\d{18})>?", arg)
 
 async def generic_modding_action(ctx, arg, action, action_past, colour, reason = None):
-    if not(check_mod(ctx)):
-            return False, None, None
-    
     members, reason_tmp = get_modding_info(ctx, arg)
 
     if action != "mute":
@@ -88,7 +83,7 @@ async def generic_modding_action(ctx, arg, action, action_past, colour, reason =
         await ctx.send(embed= mod_embed)
         await modlog.send(embed= modlog_embed)
 
-    return True, members, reason
+    return members, reason
 
 def time_builder(amount, unit):
     if not(amount):
