@@ -14,7 +14,7 @@ open_tickets = {}
 closed_tickets = {}
 open_tickets_id = set()
 closed_tickets_id = set()
-intents = discord.Intents.all()
+curated_messages = set()
 
 def main():
     intents = discord.Intents.all()
@@ -23,6 +23,10 @@ def main():
     @bot.event
     async def on_ready():
         print(f'Logged in as {bot.user}.\n')
+
+    @bot.command()
+    async def ping(ctx):
+        await ctx.message.reply("Pong!")
 
     asyncio.run(bot.add_cog(Modding(bot)))
     asyncio.run(bot.add_cog(ModMisc(bot)))
