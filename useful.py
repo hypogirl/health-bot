@@ -76,9 +76,9 @@ async def generic_modding_action(ctx, arg, action, action_past, colour, reason =
         user_message, mod_embed = create_messages(member, reason, action_past)
         modlog_embed, modlog = create_modlog_embed(ctx, action, reason, colour, member)
         try:
-            await member.send(user_message)
+            await member.send(user_message.replace("and their messages have been purged", ""))
         except:
-            print(member.mention, "doesn't allow DMs.")
+            print(member.id, "doesn't allow DMs.")
 
         await ctx.send(embed= mod_embed)
         await modlog.send(embed= modlog_embed)

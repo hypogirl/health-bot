@@ -109,7 +109,7 @@ def main():
 
     @bot.event
     async def on_member_remove(member):
-        now = datetime.utcnow()
+        now = datetime.now()
         users_leaving = member.guild.get_channel(int(config['USERS_LEAVING_ID']))
         member_str = member.name + "#" + member.discriminator
         time_on_server = (now - member.joined_at).total_seconds()
@@ -154,7 +154,6 @@ def main():
         global open_tickets_id
         global closed_tickets
         global closed_tickets_id
-        print(open_tickets)
 
         if payload.channel_id in [mod_support[1],merch_support[1]] or payload.message_id in open_tickets_id or payload.message_id in closed_tickets_id:
             # converting payload to usable variables
