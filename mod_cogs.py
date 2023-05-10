@@ -41,6 +41,14 @@ class Modding(commands.Cog):
 
     @commands.command()
     @commands.has_any_role(*mod_team)
+    async def purgeeject(self, ctx, *, arg):
+        members, reason = await useful.generic_modding_action(ctx, arg, "purge eject", "banned and their messages have been purged", 0xff0000)
+        
+        for member in members:
+            await ctx.guild.ban(member, reason= reason, delete_message_seconds= 604800)
+
+    @commands.command()
+    @commands.has_any_role(*mod_team)
     async def unban(self, ctx, *, arg):
         _, reason = await useful.generic_modding_action(ctx, arg, "unban", "unbanned", 0x149414)
         
@@ -74,8 +82,6 @@ class Modding(commands.Cog):
     @commands.has_any_role(*mod_team)
     async def unmute(self, ctx, *, arg):
         members, _ = await useful.generic_modding_action(ctx, arg, "unmute", "unmuted", 0xfffcbb)
-        if not(mod):
-            return
 
         muted_role = ctx.guild.get_role(int(config["MUTED_ROLE_ID"]))
         for member in members:
